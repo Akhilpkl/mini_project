@@ -57,3 +57,10 @@ class FacultyProfileForm(FlaskForm):
     picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
     department = StringField('Department', validators=[DataRequired()])
     submit = SubmitField('Update Profile')
+
+class EventPhotoForm(FlaskForm):
+    photo = FileField('Upload Event Photo', validators=[DataRequired(), FileAllowed(['jpg', 'png'])])
+    event_name = StringField('Event Name', validators=[DataRequired(), Length(max=100)])
+    caption = TextAreaField('Caption', validators=[Length(max=200)])
+    submit = SubmitField('Upload Photo')
+

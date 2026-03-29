@@ -20,7 +20,7 @@
                     {% endif %}
                 </div>
                 <h4 style="color:var(--t-hi); font-family:'Syne',sans-serif; letter-spacing:-.03em; margin-bottom:8px;">{{ current_user.username }}</h4>
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <div class="d-flex justify-content-center gap-2 flex-wrap mb-3">
                     <span class="badge bg-primary">{{ current_user.role|capitalize }}</span>
                     {% if current_user.role == 'alumni' %}
                     <span class="badge {% if current_user.alumni_profile.is_approved == 'Approved' %}bg-success{% else %}bg-warning{% endif %}">
@@ -28,6 +28,16 @@
                     </span>
                     {% endif %}
                 </div>
+
+                {% if current_user.role == 'alumni' %}
+                <div class="d-inline-block px-4 py-2 rounded-pill mb-2" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2);">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-bolt text-warning"></i>
+                        <span style="color:var(--t-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">XP POINTS:</span>
+                        <span style="color:#FCD34D; font-weight: 800; font-size: 1.1rem;">{{ current_user.points }}</span>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <div style="height:1px; background:var(--c-border); margin-bottom:28px;"></div>
@@ -125,6 +135,53 @@
             <div class="alert alert-info">Admin profiles are managed via the database configuration.</div>
             {% endif %}
         </div>
+
+        {# Alumni Specific: My Posted Jobs #}
+        {% if current_user.role == 'alumni' %}
+        <div class="dash-card mt-4 mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 style="color:var(--t-hi); font-family:'Syne', sans-serif; font-weight:800; margin:0;">
+                    <i class="fas fa-briefcase me-2" style="color:var(--primary);"></i>My Posted Jobs
+                </h5>
+                <a href="{{ url_for('new_job') }}" class="btn btn-primary-custom btn-sm">
+                    <i class="fas fa-plus me-1"></i> Post New
+                </a>
+            </div>
+            {% if jobs %}
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--c-border-hi);">
+                            <th class="ps-0">Job Title</th>
+                            <th>Company</th>
+                            <th>Date</th>
+                            <th class="text-end pe-0">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                        <tr style="border-bottom: 1px solid var(--c-border); vertical-align: middle;">
+                            <td class="ps-0" style="font-weight:600; color:var(--t-hi);">{{ job.title }}</td>
+                            <td style="color:var(--t-muted);">{{ job.company }}</td>
+                            <td style="color:var(--t-muted); font-size: 0.85rem;">{{ job.date_posted.strftime('%d %b %Y') }}</td>
+                            <td class="text-end pe-0">
+                                <span class="badge {% if job.is_approved %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if job.is_approved %}Live{% else %}Pending{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5" style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed var(--c-border);">
+                <i class="fas fa-history fa-2x mb-3 d-block" style="opacity: 0.2;"></i>
+                <p style="color:var(--t-muted); margin:0;">You haven't posted any jobs yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

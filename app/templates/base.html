@@ -85,6 +85,15 @@
                             <span class="nav-text">Leaderboard</span>
                         </a>
                     </li>
+                    {% if current_user.role in ['faculty', 'admin'] %}
+                    <li>
+                        <a href="{{ url_for('moderate_photos') }}" class="nav-link {% if request.endpoint == 'moderate_photos' %}active{% endif %}">
+                            <i class="fas fa-tasks"></i>
+                            <span class="nav-text">Moderate Photos</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
                     <li>
                         <a href="{{ url_for('profile') }}" class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}">
                             <i class="fas fa-user-circle"></i>

@@ -5,19 +5,22 @@
     {# Left panel #}
     <div class="auth-left d-none d-lg-flex">
         <div class="auth-brand">
+            <img src="{{ url_for('static', filename='images/sngce_logo.png') }}" alt="sngce_campus">
             <i class="fas fa-graduation-cap"></i> AlumniNet
         </div>
+        
         <div class="auth-left-quote">
+            
             <blockquote>
                 "Every great<br><span>alumni story</span><br>starts here."
             </blockquote>
             <p>Join the SNGCE community and unlock opportunities that last a lifetime.</p>
+      
         </div>
+         
         <div class="auth-stats">
-            <div class="auth-stat-box"><div class="num">5K+</div><div class="lbl">Alumni</div></div>
-            <div class="auth-stat-box"><div class="num">200+</div><div class="lbl">Jobs/mo</div></div>
-            <div class="auth-stat-box"><div class="num">50+</div><div class="lbl">Mentors</div></div>
-            <div class="auth-stat-box"><div class="num">15+</div><div class="lbl">Chapters</div></div>
+            <div class="auth-stat-box"><div class="num">{{ total_alumni }}</div><div class="lbl">Alumni</div></div>
+            <div class="auth-stat-box"><div class="num">{{ jobs_per_month }}</div><div class="lbl">Jobs/mo</div></div>
         </div>
     </div>
 

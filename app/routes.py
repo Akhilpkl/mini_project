@@ -4,8 +4,8 @@ from flask import render_template, request, redirect, url_for, flash, abort, jso
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db, bcrypt
 from datetime import datetime, timedelta
-from app.models import User, Job, AlumniProfile, StudentProfile, Certificate, FacultyProfile, Message, PointTransaction
-from app.forms import RegistrationForm, LoginForm, JobPostForm, AlumniProfileForm, StudentProfileForm, FacultyProfileForm
+from app.models import User, Job, AlumniProfile, StudentProfile, Certificate, FacultyProfile, Message, PointTransaction, EventPhoto
+from app.forms import RegistrationForm, LoginForm, JobPostForm, AlumniProfileForm, StudentProfileForm, FacultyProfileForm, EventPhotoForm
 
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
@@ -15,6 +15,15 @@ def save_picture(form_picture):
     os.makedirs(os.path.dirname(picture_path), exist_ok=True)
     form_picture.save(picture_path)
     return picture_fn
+
+def save_event_photo(form_photo):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_photo.filename)
+    photo_fn = random_hex + f_ext
+    photo_path = os.path.join(current_app.root_path, 'static/event_photos', photo_fn)
+    os.makedirs(os.path.dirname(photo_path), exist_ok=True)
+    form_photo.save(photo_path)
+    return photo_fn
 
 def before_request():
     if current_user.is_authenticated:
@@ -58,35 +67,60 @@ def award_points(user, action, amount, unique=False):
     db.session.commit()
     return True
 
-# Public Routes
-def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+def get_common_stats():
+    """Returns a dictionary of platform-wide statistics for landing/auth pages."""
     total_alumni = AlumniProfile.query.filter_by(is_approved='Approved').count()
+    
+    # Jobs per month (current month)
+    first_day_of_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    jobs_per_month = Job.query.filter(Job.is_approved == True, Job.date_posted >= first_day_of_month).count()
+    
+    # Mentors (Approved Alumni + Approved Faculty)
+    mentors = AlumniProfile.query.filter_by(is_approved='Approved').count() + \
+              FacultyProfile.query.filter_by(is_approved=True).count()
+              
+    # Chapters (Unique departments)
+    student_depts = db.session.query(StudentProfile.department).distinct().all()
+    faculty_depts = db.session.query(FacultyProfile.department).distinct().all()
+    all_depts = set([d[0] for d in student_depts if d[0]] + [d[0] for d in faculty_depts if d[0]])
+    chapters = len(all_depts) if all_depts else 1
+    
+    # Active alumni in last 30 days
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     active_alumni = User.query.join(AlumniProfile).filter(
         AlumniProfile.is_approved == 'Approved',
         User.last_seen >= thirty_days_ago
     ).count()
     
-    # New metrics
+    # Daily jobs
     daily_jobs = Job.query.filter(Job.is_approved == True, 
                                   Job.date_posted >= datetime.utcnow() - timedelta(hours=24)).count()
+
+    return {
+        'total_alumni': total_alumni,
+        'jobs_per_month': jobs_per_month,
+        'mentors': mentors,
+        'chapters': chapters,
+        'active_alumni': active_alumni,
+        'daily_jobs': daily_jobs
+    }
+
+# Public Routes
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     
-    # Unique departments/chapters
-    student_depts = db.session.query(StudentProfile.department).distinct().all()
-    faculty_depts = db.session.query(FacultyProfile.department).distinct().all()
-    all_depts = set([d[0] for d in student_depts if d[0]] + [d[0] for d in faculty_depts if d[0]])
-    global_chapters = len(all_depts) if all_depts else 1 # fallback to 1 if empty
-    
-    return render_template('index.html', total_alumni=total_alumni, active_alumni=active_alumni, 
-                           daily_jobs=daily_jobs, global_chapters=global_chapters)
+    stats = get_common_stats()
+    return render_template('index.html', **stats)
 
 # Auth Routes
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     form = RegistrationForm()
+    
+    stats = get_common_stats()
+    
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(username=form.username.data, email=form.email.data, password=hashed_password, role=form.role.data)
@@ -106,29 +140,14 @@ def register():
         db.session.commit()
         flash('Your account has been created! You can now log in.', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
+    return render_template('register.html', title='Register', form=form, **stats)
 
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     form = LoginForm()
 
-    # Metrics for login page
-    total_alumni = AlumniProfile.query.filter_by(is_approved='Approved').count()
-    
-    # Jobs per month (current month)
-    first_day_of_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    jobs_per_month = Job.query.filter(Job.is_approved == True, Job.date_posted >= first_day_of_month).count()
-    
-    # Mentors (Approved Alumni + Approved Faculty)
-    mentors = AlumniProfile.query.filter_by(is_approved='Approved').count() + \
-              FacultyProfile.query.filter_by(is_approved=True).count()
-              
-    # Chapters
-    student_depts = db.session.query(StudentProfile.department).distinct().all()
-    faculty_depts = db.session.query(FacultyProfile.department).distinct().all()
-    all_depts = set([d[0] for d in student_depts if d[0]] + [d[0] for d in faculty_depts if d[0]])
-    chapters = len(all_depts) if all_depts else 1
+    stats = get_common_stats()
 
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -138,9 +157,7 @@ def login():
             return redirect(next_page) if next_page else redirect(url_for('dashboard'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
-    return render_template('login.html', title='Login', form=form, 
-                           total_alumni=total_alumni, jobs_per_month=jobs_per_month, 
-                           mentors=mentors, chapters=chapters)
+    return render_template('login.html', title='Login', form=form, **stats)
 
 def logout():
     logout_user()
@@ -287,46 +304,62 @@ def admin_delete_job(job_id):
 # Main App Routes
 @login_required
 def dashboard():
+    # Common data for all roles
+    approved_photos = EventPhoto.query.filter_by(status='approved').order_by(EventPhoto.uploaded_at.desc()).limit(6).all()
+    
     if current_user.role == 'admin':
         users_count = User.query.count()
         jobs_count = Job.query.count()
         pending_alumni = AlumniProfile.query.filter_by(is_approved='Pending').count()
-        return render_template('dashboard.html', users_count=users_count, jobs_count=jobs_count, pending_alumni=pending_alumni)
+        return render_template('dashboard.html', 
+                               users_count=users_count, 
+                               jobs_count=jobs_count, 
+                               pending_alumni=pending_alumni, 
+                               event_photos=approved_photos)
     
     elif current_user.role == 'faculty':
         if not current_user.faculty_profile or not current_user.faculty_profile.is_approved:
             reason = 'pending admin approval' if current_user.faculty_profile else 'missing profile (please contact admin)'
             flash(f'Your faculty account is {reason}.', 'warning')
-            return render_template('dashboard.html', pending_jobs=[], pending_alumni=[])
+            return render_template('dashboard.html', pending_jobs=[], pending_alumni=[], event_photos=approved_photos)
+        
         pending_jobs = Job.query.filter_by(is_approved=False).all()
         pending_alumni = AlumniProfile.query.filter_by(is_approved='Pending').all()
-        return render_template('dashboard.html', pending_jobs=pending_jobs, pending_alumni=pending_alumni)
+        return render_template('dashboard.html', 
+                               pending_jobs=pending_jobs, 
+                               pending_alumni=pending_alumni, 
+                               event_photos=approved_photos)
     
     elif current_user.role == 'alumni':
         if not current_user.alumni_profile:
             flash('Your alumni profile is missing. Please contact an admin or complete your registration.', 'danger')
-            return render_template('dashboard.html', jobs=[], profile=None)
+            return render_template('dashboard.html', jobs=[], profile=None, event_photos=approved_photos)
+        
         my_jobs = Job.query.filter_by(user_id=current_user.alumni_profile.id).all()
-        return render_template('dashboard.html', jobs=my_jobs, profile=current_user.alumni_profile)
+        return render_template('dashboard.html', 
+                               jobs=my_jobs, 
+                               profile=current_user.alumni_profile, 
+                               event_photos=approved_photos)
     
     elif current_user.role == 'student':
         if not current_user.student_profile:
             flash('Your student profile is missing. Please contact an admin.', 'danger')
-            return render_template('dashboard.html', jobs=[])
+            return render_template('dashboard.html', jobs=[], event_photos=approved_photos)
+            
         current_year = datetime.utcnow().year
         student_yr_num = current_year - current_user.student_profile.enrollment_year + 1
-        if student_yr_num == 1: student_yr_str = "1st Year"
-        elif student_yr_num == 2: student_yr_str = "2nd Year"
-        elif student_yr_num == 3: student_yr_str = "3rd Year"
-        elif student_yr_num >= 4: student_yr_str = "4th Year"
-        else: student_yr_str = "1st Year"
+        year_map = {1: "1st Year", 2: "2nd Year", 3: "3rd Year", 4: "4th Year"}
+        student_yr_str = year_map.get(student_yr_num, "4th Year" if student_yr_num > 4 else "1st Year")
         
         recent_jobs = Job.query.filter(Job.is_approved==True).filter(
             db.or_(Job.target_year == 'All', Job.target_year == student_yr_str)
         ).order_by(Job.date_posted.desc()).limit(5).all()
-        return render_template('dashboard.html', jobs=recent_jobs)
+        
+        return render_template('dashboard.html', jobs=recent_jobs, event_photos=approved_photos)
     
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', event_photos=approved_photos)
+
+
 
 @login_required
 def jobs():
@@ -473,7 +506,12 @@ def profile():
         elif request.method == 'GET':
             form.department.data = current_user.faculty_profile.department
 
-    return render_template('profile.html', title='Profile', form=form)
+    # Fetch jobs for alumni to display on profile
+    my_jobs = []
+    if current_user.role == 'alumni' and current_user.alumni_profile:
+        my_jobs = Job.query.filter_by(user_id=current_user.alumni_profile.id).all()
+
+    return render_template('profile.html', title='Profile', form=form, jobs=my_jobs)
 
 @login_required
 def view_profile(user_id):
@@ -599,3 +637,76 @@ def api_send_message(user_id):
         db.session.commit()
         return jsonify({'status': 'success'})
     return jsonify({'status': 'error', 'message': 'Empty content'}), 400
+
+@login_required
+def upload_event_photo():
+    if current_user.role != 'alumni':
+        abort(403)
+    form = EventPhotoForm()
+    if form.validate_on_submit():
+        if form.photo.data:
+            photo_file = save_event_photo(form.photo.data)
+            event_photo = EventPhoto(
+                user_id=current_user.id,
+                image_path=photo_file,
+                event_name=form.event_name.data,
+                caption=form.caption.data
+            )
+            db.session.add(event_photo)
+            db.session.commit()
+            flash('Photo uploaded successfully! It will be visible once verified by faculty.', 'success')
+            return redirect(url_for('dashboard'))
+    return render_template('upload_photo.html', title='Upload Event Photo', form=form)
+
+@login_required
+def moderate_photos():
+    if current_user.role not in ['faculty', 'admin']:
+        abort(403)
+    if current_user.role == 'faculty' and (not current_user.faculty_profile or not current_user.faculty_profile.is_approved):
+        abort(403)
+    pending_photos = EventPhoto.query.filter_by(status='pending').all()
+    return render_template('moderate_photos.html', title='Moderate Photos', photos=pending_photos)
+
+@login_required
+def approve_photo(photo_id):
+    if current_user.role not in ['faculty', 'admin']:
+        abort(403)
+    photo = EventPhoto.query.get_or_404(photo_id)
+    photo.status = 'approved'
+    photo.verified_by = current_user.id
+    db.session.commit()
+    flash('Photo approved and added to gallery!', 'success')
+    return redirect(url_for('moderate_photos'))
+
+@login_required
+def reject_photo(photo_id):
+    if current_user.role not in ['faculty', 'admin']:
+        abort(403)
+    photo = EventPhoto.query.get_or_404(photo_id)
+    photo.status = 'rejected'
+    photo.verified_by = current_user.id
+    db.session.commit()
+    flash('Photo has been rejected.', 'warning')
+    return redirect(url_for('moderate_photos'))
+
+@login_required
+def delete_event_photo(photo_id):
+    photo = EventPhoto.query.get_or_404(photo_id)
+    
+    # Permission check: Uploader or Admin
+    if photo.user_id != current_user.id and current_user.role != 'admin':
+        abort(403)
+    
+    # Remove from storage
+    try:
+        photo_path = os.path.join(current_app.root_path, 'static/event_photos', photo.image_path)
+        if os.path.exists(photo_path):
+            os.remove(photo_path)
+    except Exception as e:
+        # Log error but proceed with DB deletion if file is already missing
+        print(f"Error deleting file: {e}")
+
+    db.session.delete(photo)
+    db.session.commit()
+    flash('Photo has been deleted.', 'success')
+    return redirect(url_for('dashboard'))

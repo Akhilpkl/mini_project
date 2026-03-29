@@ -26,6 +26,11 @@ AlumniNet is a modern, high-performance platform designed to bridge the gap betw
 - **Point System**: Alumni earn points for high-value actions (job posting, profile updates).
 - **Global Leaderboard**: Promoting active contribution across the entire alumni community.
 
+### 🖼️ Event Photo Sharing
+- **Community Gallery**: Alumni upload photos of meets and reunions.
+- **Moderated Workflow**: Verification by Faculty ensures content quality.
+- **Dynamic Feed**: Approved photos displayed in a modern grid layout.
+
 ### 🛡️ Elite Admin Panel
 - Dedicated high-security dashboard.
 - Full control over users, approvals, job moderation, and system statistics.
@@ -196,6 +201,20 @@ CREATE TABLE point_transaction (
     amount INT NOT NULL,
     timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+-- Event Photos (Moderated Gallery)
+CREATE TABLE event_photo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    image_path VARCHAR(200) NOT NULL,
+    caption VARCHAR(200),
+    event_name VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'pending',
+    verified_by INT,
+    uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (verified_by) REFERENCES user(id) ON DELETE SET NULL
 );
 ```
 

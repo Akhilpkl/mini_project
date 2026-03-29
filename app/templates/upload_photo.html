@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center fade-in-up">
+    <div class="col-md-6">
+        <div class="content-header">
+            <h1>Upload Event Photo</h1>
+        </div>
+        <div class="dash-card">
+            <p style="color:var(--t-muted); font-size:.9rem; margin-bottom:24px;">Share a memory from an alumni meet, reunion, or get-together. Photos will be visible to everyone once verified by faculty.</p>
+            
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-4 text-center">
+                    <div id="imagePreview" style="width:100%; max-height:300px; border-radius:var(--r); background:rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; border:2px dashed var(--c-border); overflow:hidden; margin-bottom:12px;">
+                        <i class="fas fa-image fa-3x" style="opacity:0.2;"></i>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.photo.label(class="form-label") }}
+                    {{ form.photo(class="form-control", onchange="previewImage(this)") }}
+                    {% if form.photo.errors %}
+                        {% for error in form.photo.errors %}
+                            <span class="text-danger small">{{ error }}</span><br>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="form-text">Choose a JPG or PNG file.</div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.event_name.label(class="form-label") }}
+                    {% if form.event_name.errors %}
+                        {{ form.event_name(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">{% for e in form.event_name.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                    {% else %}
+                        {{ form.event_name(class="form-control", placeholder="e.g. 2024 Winter Reunion") }}
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.caption.label(class="form-label") }}
+                    {% if form.caption.errors %}
+                        {{ form.caption(class="form-control is-invalid", rows=3) }}
+                        <div class="invalid-feedback">{% for e in form.caption.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                    {% else %}
+                        {{ form.caption(class="form-control", rows=3, placeholder="A brief description of this moment...") }}
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-3">
+                    {{ form.submit(class="btn btn-primary-custom") }}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    var preview = document.getElementById('imagePreview');
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<img src="' + e.target.result + '" style="width:100%; height:auto; object-fit:contain;">';
+            preview.style.border = 'none';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

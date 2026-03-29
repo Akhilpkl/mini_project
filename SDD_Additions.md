@@ -22,6 +22,12 @@ To enhance networking, user profiles are directly accessible from the messaging 
 - **Event Handling**: Clicking a profile photo or name triggers navigation to the `view_profile` route.
 - **Bubbling Prevention**: `event.stopPropagation()` is utilized to distinguish between profile viewing and chat activation.
 
+### 4.4 Alumni Event Photo Sharing and Verification System
+A moderated community hub for sharing visual records of alumni gatherings and reunions.
+- **Workflow Architecture**: Implements a three-stage lifecycle: **Upload** (Alumni) -> **Verification** (Faculty) -> **Gallery Display** (Global).
+- **Moderation Logic**: Photos are assigned a `pending` status upon upload and are only rendered in the public gallery after explicit `approved` status transition by authorized faculty.
+- **Verification Panel**: A specialized administrative interface for faculty to review, approve, or reject submissions based on content quality and relevance.
+
 ---
 
 ## 5.0 Enhanced Administration Architecture
@@ -59,10 +65,13 @@ The gamification engine is architected with strict role-based rules:
 |------------|------------|-------------|
 | `message` | `sender_id`, `recipient_id`, `content`, `timestamp`, `is_read` | Stores 1-to-1 communication history. |
 | `point_transaction` | `user_id`, `action`, `amount`, `timestamp` | Audit log for all gamification events. |
+| `event_photo` | `id`, `user_id`, `image_path`, `caption`, `event_name`, `status`, `verified_by`, `uploaded_at` | Stores moderated community event photos. |
 
 ### 7.2 Updated Relationships
 - **User ↔ Message**: One-to-Many relationship (one user can send/receive many messages).
 - **User ↔ PointTransaction**: One-to-Many relationship (each point earned is logged as a transaction).
+- **User ↔ EventPhoto**: One-to-Many relationship (alumni can upload multiple photos).
+- **Faculty ↔ EventPhoto**: One-to-Many relationship (faculty verifies and approves submissions).
 
 ---
 
@@ -72,6 +81,16 @@ The gamification engine is architected with strict role-based rules:
 2.  **UC05: Profile Navigation**: Users can transition directly from a chat card to the full profile of the contact.
 3.  **UC06: Administrative Moderation**: Administrator approves or rejects pending alumni/faculty applications.
 4.  **UC07: Points Management**: Administrator manually updates or resets user points to maintain system integrity.
+5.  **UC08: Upload Event Photo**: Alumni submits a photo with a caption for moderation.
+6.  **UC09: Moderate Photos**: Faculty reviews pending photos and approves them for public display.
+7.  **UC10: View Event Gallery**: Users browse approved alumni event photos on the dashboard.
+
+---
+
+## 9.0 Security & Validation
+- **Role-Based Access Control (RBAC)**: Strict separation of privileges ensures only Alumni can upload and only Faculty/Admin can moderate content.
+- **File Validation**: MIME-type restriction (JPG/PNG) and file size limitation (2MB) prevent malicious uploads and storage overhead.
+- **Access Control**: Unapproved photos are isolated from the public GET requests using server-side filters.
 
 ---
 

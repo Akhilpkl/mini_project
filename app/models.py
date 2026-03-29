@@ -133,3 +133,18 @@ class PointTransaction(db.Model):
 
     def __repr__(self):
         return f"PointTransaction('{self.action}', {self.amount}, '{self.timestamp}')"
+
+class EventPhoto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    image_path = db.Column(db.String(200), nullable=False)
+    caption = db.Column(db.String(200))
+    event_name = db.Column(db.String(100))
+    status = db.Column(db.String(20), default='pending') # pending, approved, rejected
+    verified_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    uploaded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    # Relationships
+    uploader = db.relationship('User', foreign_keys=[user_id], backref='uploaded_photos')
+    verifier = db.relationship('User', foreign_keys=[verified_by], backref='verified_photos')
+

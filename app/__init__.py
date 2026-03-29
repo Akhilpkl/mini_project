@@ -56,6 +56,12 @@ def create_app(config_class=Config):
     app.add_url_rule('/chat/<int:user_id>', 'chat', routes.chat)
     app.add_url_rule('/api/chat/<int:user_id>', 'api_get_chat', routes.api_get_chat)
     app.add_url_rule('/api/chat/send/<int:user_id>', 'api_send_message', routes.api_send_message, methods=['POST'])
+    app.add_url_rule('/upload_photo', 'upload_event_photo', routes.upload_event_photo, methods=['GET', 'POST'])
+    app.add_url_rule('/moderate_photos', 'moderate_photos', routes.moderate_photos)
+    app.add_url_rule('/approve_photo/<int:photo_id>', 'approve_photo', routes.approve_photo)
+    app.add_url_rule('/reject_photo/<int:photo_id>', 'reject_photo', routes.reject_photo)
+    app.add_url_rule('/delete_photo/<int:photo_id>', 'delete_event_photo', routes.delete_event_photo)
+
 
     # Create tables within application context if they don't exist
     with app.app_context():

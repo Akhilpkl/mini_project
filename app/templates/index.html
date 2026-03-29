@@ -2,8 +2,14 @@
 {% block content %}
 
 {# ── HERO ── #}
-<section class="hero-section fade-in-up">
-    <div class="container" style="max-width: 860px;">
+<section class="hero-section fade-in-up" 
+         style="background-image: 
+                linear-gradient(rgba(5,6,15,0.78), rgba(5,6,15,0.85)), 
+                url('{{ url_for('static', filename='images/sngce_campus.png') }}'); 
+                background-size: cover; 
+                background-position: center bottom;">
+    <div class="hero-content-wrapper w-100">
+        <div class="container" style="max-width: 860px; position:relative; z-index:2;">
         <div class="hero-eyebrow">
             <i class="fas fa-circle-nodes me-1"></i> Alumni Network Platform
         </div>
@@ -26,7 +32,7 @@
     {# Floating stat cards #}
     <div class="container mt-5" style="max-width:860px;">
         <div class="row g-4 justify-content-center mt-2">
-            {% set stats = [(total_alumni, 'Total Alumni', 'fa-users'), (active_alumni, 'Active Alumni', 'fa-bolt'), (daily_jobs, 'Daily Jobs', 'fa-briefcase'), (global_chapters, 'Global Chapters', 'fa-globe')] %}
+            {% set stats = [(total_alumni, 'Total Alumni', 'fa-users'), (active_alumni, 'Active Alumni', 'fa-bolt'), (daily_jobs, 'Daily Jobs', 'fa-briefcase'), ] %}
             {% for num, label, icon in stats %}
             <div class="col-6 col-md-3">
                 <div class="stat-card text-center" style="padding:24px 16px;">
@@ -92,8 +98,8 @@
             </div>
             <div class="col-lg-6">
                 <div style="position:relative; border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--c-border);">
-                    <img src="https://sngce.ac.in/img/innerbanner.jpg" alt="SNGCE Campus"
-                         class="img-fluid" style="display:block; border-radius:var(--r-lg);">
+                    <img src="{{ url_for('static', filename='images/sngce_campus.png') }}" alt="SNGCE Campus"
+                         class="img-fluid" style="display:block; border-radius:var(--r-lg); width:100%; object-fit:cover;">
                     <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(5,6,15,.7)); border-radius:var(--r-lg);pointer-events:none;"></div>
                 </div>
             </div>
