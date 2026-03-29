@@ -1,0 +1,145 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<div class="fade-in-up">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-heading mb-1" style="font-size: 2rem;">System Overview</h1>
+            <p class="text-muted">Real-time platform metrics and activity.</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-dark border border-secondary p-2">
+                <i class="fas fa-clock me-1"></i> {{ now.strftime('%d %b, %H:%M') if now else 'Live' }}
+            </span>
+        </div>
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="admin-stat-card">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="stat-icon" style="color:var(--a1);"><i class="fas fa-users fs-4"></i></div>
+                    <div class="text-success small"><i class="fas fa-arrow-up me-1"></i>Total</div>
+                </div>
+                <h3 class="stat-number mb-0">{{ users_count }}</h3>
+                <div class="stat-label">Total Users</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-stat-card">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="stat-icon" style="color:#ef4444;"><i class="fas fa-user-clock fs-4"></i></div>
+                    <div class="text-warning small">Pending</div>
+                </div>
+                <h3 class="stat-number mb-0">{{ pending_faculties + pending_alumni }}</h3>
+                <div class="stat-label">Pending Approvals</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-stat-card">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="stat-icon" style="color:var(--a3);"><i class="fas fa-briefcase fs-4"></i></div>
+                    <div class="text-info small">Active</div>
+                </div>
+                <h3 class="stat-number mb-0">{{ jobs_count }}</h3>
+                <div class="stat-label">Opportunities</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-stat-card">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="stat-icon" style="color:var(--warning);"><i class="fas fa-bolt fs-4"></i></div>
+                    <div class="text-muted small">Total XP</div>
+                </div>
+                <h3 class="stat-number mb-0">{{ total_points }}</h3>
+                <div class="stat-label">Points Distributed</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- RECENT USERS -->
+        <div class="col-lg-8">
+            <div class="dash-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Recent Registrations</h5>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=4c1d95&color=c4b5fd" class="rounded-circle me-3" width="32" height="32">
+                                        <div>
+                                            <div class="fw-bold text-white">{{ user.username }}</div>
+                                            <div class="text-muted smaller">{{ user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark border border-secondary text-capitalize">{{ user.role }}</span>
+                                </td>
+                                <td class="text-muted small">
+                                    {{ user.created_at.strftime('%H:%M, %d %b') }}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('view_profile', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary">Profile</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- QUICK ACTIONS / SYSTEM STATUS -->
+        <div class="col-lg-4">
+            <div class="dash-card mb-4" style="background: linear-gradient(135deg, rgba(124,58,237,0.1), transparent);">
+                <h5 class="mb-4">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin_faculty_approvals') }}" class="btn btn-primary-custom w-100 justify-content-center">
+                        <i class="fas fa-check-circle me-2"></i> Review Approvals
+                    </a>
+                    <a href="{{ url_for('new_job') }}" class="btn btn-outline-primary w-100 justify-content-center">
+                        <i class="fas fa-plus me-2"></i> Post Global Job
+                    </a>
+                </div>
+            </div>
+            
+            <div class="dash-card">
+                <h5 class="mb-3">System Health</h5>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Messages Sent</span>
+                        <span class="text-white">{{ messages_count }}</span>
+                    </div>
+                    <div class="progress" style="height: 4px !important;">
+                        <div class="progress-bar bg-info" style="width: 70%"></div>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Job Approval Rate</span>
+                        <span class="text-white">85%</span>
+                    </div>
+                    <div class="progress" style="height: 4px !important;">
+                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

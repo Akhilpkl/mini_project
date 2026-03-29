@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+
+{# ── HERO ── #}
+<section class="hero-section fade-in-up">
+    <div class="container" style="max-width: 860px;">
+        <div class="hero-eyebrow">
+            <i class="fas fa-circle-nodes me-1"></i> Alumni Network Platform
+        </div>
+        <h1 class="hero-title">
+            Where <span class="accent-word">Legacy</span><br>Meets Opportunity
+        </h1>
+        <p class="hero-subtitle">
+            SNGCE's premier alumni network. Connect, grow, and give back — all in one place.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{{ url_for('register') }}" class="btn btn-primary-custom" style="font-size:1rem; padding:14px 36px;">
+                Get Started Free <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary" style="font-size:1rem; padding:14px 36px;">
+                Sign In
+            </a>
+        </div>
+    </div>
+
+    {# Floating stat cards #}
+    <div class="container mt-5" style="max-width:860px;">
+        <div class="row g-4 justify-content-center mt-2">
+            {% set stats = [(total_alumni, 'Total Alumni', 'fa-users'), (active_alumni, 'Active Alumni', 'fa-bolt'), (daily_jobs, 'Daily Jobs', 'fa-briefcase'), (global_chapters, 'Global Chapters', 'fa-globe')] %}
+            {% for num, label, icon in stats %}
+            <div class="col-6 col-md-3">
+                <div class="stat-card text-center" style="padding:24px 16px;">
+                    <div class="feature-icon mx-auto mb-3"><i class="fas {{ icon }}"></i></div>
+                    <div class="stat-number">{{ num }}</div>
+                    <div class="stat-label">{{ label }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<div class="section-divider" style="margin: 40px 0 60px;"></div>
+
+{# ── FEATURES ── #}
+<section class="container py-3 fade-in-up" style="max-width:900px;">
+    <div class="text-center mb-5">
+        <div class="hero-eyebrow" style="font-size:.72rem;">
+            <i class="fas fa-sparkles me-1"></i> Everything you need
+        </div>
+        <h2 class="display-heading" style="font-size:clamp(1.8rem,4vw,3rem); color: var(--t-hi); letter-spacing:-.04em;">
+            The Digital Nexus for<br><span style="background: var(--grad-text); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">SNGCE Alumni</span>
+        </h2>
+    </div>
+
+    <div class="row g-4">
+        {% set features = [
+            ('fa-briefcase','Career Board','Exclusive job opportunities posted by alumni for fellow graduates — curated, verified, relevant.'),
+            ('fa-user-graduate','Mentorship','Connect directly with industry leaders and senior alumni who are ready to guide your path.'),
+            ('fa-network-wired','Alumni Network','Find batchmates, reconnect with old friends, and build relationships that last a lifetime.'),
+            ('fa-trophy','Leaderboard','A gamified recognition system — earn XP, collect badges, and rise to the top.'),
+        ] %}
+        {% for icon, title, desc in features %}
+        <div class="col-md-6">
+            <div class="feature-card h-100">
+                <div class="feature-icon"><i class="fas {{ icon }}"></i></div>
+                <h3>{{ title }}</h3>
+                <p>{{ desc }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+{# ── ABOUT SECTION ── #}
+<section class="container mb-5 fade-in-up" style="max-width:900px; padding-bottom:80px;">
+    <div class="dash-card" style="padding:48px;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="hero-eyebrow mb-4" style="font-size:.72rem;">About SNGCE</div>
+                <h2 class="display-heading mb-4" style="font-size:clamp(1.6rem,3vw,2.4rem); color:var(--t-hi); letter-spacing:-.04em;">
+                    A network built on <span style="background: var(--grad-text); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">shared roots</span>
+                </h2>
+                <p style="color:var(--t-muted); line-height:1.75; margin-bottom:28px;">
+                    Our alumni association exists to strengthen lifelong connections between the institute and its global community. We empower engineers to grow, collaborate, and pass the torch to the next generation.
+                </p>
+                <a href="{{ url_for('register') }}" class="btn btn-primary-custom">
+                    Join the Network <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+            <div class="col-lg-6">
+                <div style="position:relative; border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--c-border);">
+                    <img src="https://sngce.ac.in/img/innerbanner.jpg" alt="SNGCE Campus"
+                         class="img-fluid" style="display:block; border-radius:var(--r-lg);">
+                    <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(5,6,15,.7)); border-radius:var(--r-lg);pointer-events:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

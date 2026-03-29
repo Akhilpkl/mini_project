@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="fade-in-up">
+    <div class="content-header">
+        <h1>Career Opportunities</h1>
+        {% if current_user.role == 'alumni' %}
+        <a href="{{ url_for('new_job') }}" class="btn btn-primary-custom btn-sm">
+            <i class="fas fa-plus"></i> Post a Job
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="row g-4">
+        {% for job in jobs %}
+        <div class="col-md-6 col-lg-4">
+            <div class="dash-card h-100 d-flex flex-column" style="padding:24px;">
+                {# Top tag #}
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge bg-primary">{{ job.type if job.type else 'Full Time' }}</span>
+                    <small style="color:var(--t-muted); font-size:.75rem;">{{ job.date_posted.strftime('%d %b %Y') }}</small>
+                </div>
+
+                {# Title & company #}
+                <h5 style="color:var(--t-hi); font-weight:700; margin-bottom:6px; font-size:.9375rem; letter-spacing:-.02em;">{{ job.title }}</h5>
+                <div style="color:var(--t-muted); font-size:.825rem; margin-bottom:4px;">
+                    <i class="fas fa-building me-1" style="opacity:.5;"></i>{{ job.company }}
+                </div>
+                <div style="color:var(--t-muted); font-size:.825rem; margin-bottom:14px;">
+                    <i class="fas fa-map-marker-alt me-1" style="opacity:.5;"></i>{{ job.location }}
+                </div>
+
+                <p style="color:var(--t-muted); font-size:.85rem; line-height:1.6; flex:1; margin-bottom:20px;">
+                    {{ job.description[:130] }}…
+                </p>
+
+                <div>
+                    <a href="{{ job.apply_link if '://' in job.apply_link else 'https://' + job.apply_link }}"
+                       target="_blank" class="btn btn-primary-custom w-100 btn-sm" style="justify-content:center;">
+                       Apply Now <i class="fas fa-external-link-alt ms-1" style="font-size:.7rem;"></i>
+                    </a>
+                    <div class="text-center mt-2">
+                        <small style="color:var(--t-dim); font-size:.72rem;">Posted by {{ job.author.user.username }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12" style="text-align:center; padding:80px 0;">
+            <i class="fas fa-briefcase fa-3x mb-4 d-block" style="background:var(--grad-text); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; opacity:.4;"></i>
+            <h4 style="color:var(--t-muted); font-weight:600;">No jobs posted yet</h4>
+            <p style="color:var(--t-dim);">Check back soon or post an opportunity yourself.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

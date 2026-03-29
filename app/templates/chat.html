@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row h-100 align-items-center justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card bg-surface border-0 d-flex flex-column shadow-lg" style="height: 75vh; border: 1px solid var(--c-border) !important; border-radius: 16px; overflow: hidden;">
+            
+            <!-- Chat Header -->
+            <div class="p-3 border-bottom d-flex align-items-center" style="border-color: var(--c-border) !important; background: rgba(255,255,255,0.02);">
+                <a href="{{ url_for('messages') }}" class="text-muted me-3 hover-text-white transition"><i class="fas fa-arrow-left"></i></a>
+                {% if other_user.image_file and other_user.image_file != 'default.jpg' %}
+                <img src="{{ url_for('static', filename='profile_pics/' + other_user.image_file) }}" class="rounded-circle me-3" width="45" height="45" style="object-fit:cover;">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ other_user.username }}&background=4c1d95&color=c4b5fd" class="rounded-circle me-3" width="45" height="45">
+                {% endif %}
+                <div>
+                    <h6 class="mb-0 text-white">{{ other_user.username }}</h6>
+                    <small class="text-muted text-capitalize">{{ other_user.role }}</small>
+                </div>
+                <div class="ms-auto text-muted small opacity-50">
+                    <i class="fas fa-circle text-success" style="font-size: 8px;"></i>
+                </div>
+            </div>
+
+            <!-- Chat Messages Layout -->
+            <div class="flex-grow-1 p-4 overflow-auto" id="chat-messages" style="background: var(--c-bg);">
+                <div class="d-flex justify-content-center align-items-center h-100">
+                    <div class="text-center text-muted small"><i class="fas fa-circle-notch fa-spin me-2"></i>Loading messages...</div>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="p-3 border-top" style="border-color: var(--c-border) !important; background: rgba(255,255,255,0.02);">
+                <form id="chat-form" class="d-flex gap-2">
+                    <input type="text" id="chat-input" class="form-control" style="border-radius: 20px;" placeholder="Type a message..." required autocomplete="off">
+                    <button type="submit" class="btn btn-primary-custom shadow-sm" style="border-radius: 20px; width: 50px;"><i class="fas fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const otherUserId = {{ other_user.id }};
+    const currentUserId = {{ current_user.id }};
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    
+    let lastMessageCount = -1;
+
+    function renderMessages(msgs) {
+        if(msgs.length === lastMessageCount) return; // no new msgs
+        
+        chatMessages.innerHTML = '';
+        if(msgs.length === 0) {
+            chatMessages.innerHTML = '<div class="text-center text-muted mt-5 small">No messages yet. Say hi!</div>';
+        }
+        
+        msgs.forEach(msg => {
+            const isMe = msg.sender_id === currentUserId;
+            const bubbleWrap = document.createElement('div');
+            bubbleWrap.className = `d-flex flex-column mb-3 ${isMe ? 'align-items-end' : 'align-items-start'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.style.maxWidth = '75%';
+            contentDiv.style.padding = '12px 18px';
+            contentDiv.style.borderRadius = '18px';
+            contentDiv.style.fontSize = '0.95rem';
+            contentDiv.innerText = msg.content;
+            
+            if(isMe){
+                contentDiv.style.background = 'var(--c-primary)';
+                contentDiv.style.color = 'white';
+                contentDiv.style.borderBottomRightRadius = '4px';
+            } else {
+                contentDiv.style.background = 'var(--c-surface)';
+                contentDiv.style.color = 'var(--c-text)';
+                contentDiv.style.border = '1px solid var(--c-border)';
+                contentDiv.style.borderBottomLeftRadius = '4px';
+            }
+            
+            const timeDiv = document.createElement('small');
+            timeDiv.className = 'text-muted mt-1 opacity-50';
+            timeDiv.style.fontSize = '0.65rem';
+            // format naive timestamp
+            const date = new Date(msg.timestamp + 'Z');
+            timeDiv.innerText = isNaN(date.getTime()) ? msg.timestamp : date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            bubbleWrap.appendChild(contentDiv);
+            bubbleWrap.appendChild(timeDiv);
+            chatMessages.appendChild(bubbleWrap);
+        });
+        
+        // scroll to bottom smoothly if not first load, else instantly
+        if(lastMessageCount === -1) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else {
+            chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+        }
+        
+        lastMessageCount = msgs.length;
+    }
+
+    function fetchMessages() {
+        fetch(`/api/chat/${otherUserId}`)
+            .then(res => res.json())
+            .then(data => renderMessages(data))
+            .catch(err => console.error('Fetch error:', err));
+    }
+
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const content = chatInput.value.trim();
+        if(!content) return;
+        
+        chatInput.value = '';
+        
+        const formData = new FormData();
+        formData.append('content', content);
+        
+        fetch(`/api/chat/send/${otherUserId}`, {
+            method: 'POST',
+            body: formData
+        }).then(res => res.json())
+          .then(data => {
+              if(data.status === 'success') {
+                  fetchMessages(); // fetch immediately to show
+              }
+          });
+    });
+
+    // Run interval
+    fetchMessages();
+    setInterval(fetchMessages, 2500); // Poll every 2.5 seconds
+</script>
+{% endblock %}

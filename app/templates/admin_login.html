@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-split">
+    {# Left panel — branding #}
+    <div class="auth-left d-none d-lg-flex" style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.12), rgba(185, 28, 28, 0.08));">
+        <div class="auth-brand" style="color: #ef4444;">
+            <i class="fas fa-shield-alt"></i> AdminSec
+        </div>
+        <div class="auth-left-quote">
+            <blockquote>
+                "Administrative Control<br><span style="color: #ef4444;">Restricted Access.</span>"
+            </blockquote>
+            <p>Authorized Personnel Only.</p>
+        </div>
+    </div>
+
+    {# Right panel — form #}
+    <div class="auth-right">
+        <div class="auth-form-wrap">
+            <div class="mb-5">
+                <a href="{{ url_for('index') }}" class="auth-brand d-lg-none mb-4 d-inline-flex" style="color: #ef4444;">
+                    <i class="fas fa-shield-alt"></i> AdminSec
+                </a>
+                <h2 class="display-heading mb-1" style="font-size:1.8rem; color:var(--t-hi);">Admin Login</h2>
+                <p style="color:var(--t-muted); font-size:.9rem; margin:0;">Secure access required</p>
+            </div>
+
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-4">
+                    {{ form.email.label(class="form-label") }}
+                    {% if form.email.errors %}
+                    {{ form.email(class="form-control is-invalid", placeholder="admin@aluminet.edu") }}
+                    <div class="invalid-feedback">{% for e in form.email.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                    {% else %}
+                    {{ form.email(class="form-control", placeholder="admin@aluminet.edu") }}
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.password.label(class="form-label") }}
+                    {% if form.password.errors %}
+                    {{ form.password(class="form-control is-invalid", placeholder="••••••••") }}
+                    <div class="invalid-feedback">{% for e in form.password.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                    {% else %}
+                    {{ form.password(class="form-control", placeholder="••••••••") }}
+                    {% endif %}
+                </div>
+
+                <div class="mb-5 form-check">
+                    {{ form.remember(class="form-check-input") }}
+                    {{ form.remember.label(class="form-check-label") }}
+                </div>
+
+                <div class="d-grid mb-4">
+                    {{ form.submit(class="btn btn-primary-custom", style="justify-content:center; background-color: #dc2626; border-color: #b91c1c;") }}
+                </div>
+                
+                <p class="text-center" style="color:var(--t-muted); font-size:.875rem;">
+                    Back to <a href="{{ url_for('index') }}" class="auth-link">Home</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

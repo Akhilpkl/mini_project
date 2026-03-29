@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .message-item:hover {
+        background: rgba(255, 255, 255, 0.03) !important;
+        transform: translateX(4px);
+    }
+    .profile-name-hover {
+        transition: color 0.2s ease;
+    }
+    .profile-name-hover:hover {
+        color: var(--a1) !important;
+        text-decoration: underline !important;
+    }
+    .profile-link {
+        transition: transform 0.2s ease, border-color 0.2s ease;
+        display: inline-block;
+    }
+    .profile-link:hover {
+        transform: scale(1.05);
+        border-color: var(--a1) !important;
+    }
+    .chat-trigger:hover .chat-indicator i {
+        color: var(--a1) !important;
+        opacity: 1 !important;
+    }
+    .dot-divider {
+        width: 4px;
+        height: 4px;
+        background: var(--c-border-hi);
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .text-primary-light {
+        color: #a78bfa;
+        opacity: 0.8;
+    }
+    .unread-highlight {
+        background: rgba(124, 58, 237, 0.05) !important;
+    }
+    .border-a1 {
+        border: 2px solid var(--a1) !important;
+    }
+    .font-smaller {
+        font-size: 0.65rem;
+        border-color: rgba(255,255,255,0.1) !important;
+    }
+    .small-text {
+        font-size: 0.75rem;
+    }
+    .preview-text {
+        font-size: 0.85rem;
+        max-width: 400px;
+    }
+    .text-unread {
+        color: var(--t-hi) !important;
+        font-weight: 500;
+    }
+</style>
+<div class="row">
+    <div class="col-12 col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 text-white"><i class="fas fa-comments me-2"></i>Recent Messages</h4>
+        </div>
+
+        <div class="card bg-surface border-0 overflow-hidden mb-4" style="border: 1px solid var(--c-border) !important; border-radius: 12px;">
+            <div class="list-group list-group-flush">
+                {% for item in contacts_data %}
+                {% set contact = item.contact %}
+                {% set last_msg = item.last_msg %}
+                <div class="list-group-item bg-transparent border-bottom p-4 message-item {% if item.unread_count > 0 %}unread-highlight{% endif %}" style="border-color: var(--c-border) !important; transition: all 0.3s ease; position: relative;">
+                    {% if item.unread_count > 0 %}
+                    <div style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background: var(--a1); border-radius: 50%; box-shadow: 0 0 10px var(--a1);"></div>
+                    {% endif %}
+                    
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center flex-grow-1 chat-trigger" style="cursor: pointer;" onclick="window.location.href='{{ url_for('chat', user_id=contact.id) }}';">
+                            <a href="{{ url_for('view_profile', user_id=contact.id) }}" class="profile-link me-3" onclick="event.stopPropagation();" title="View Profile">
+                                {% if contact.image_file and contact.image_file != 'default.jpg' %}
+                                <img src="{{ url_for('static', filename='profile_pics/' + contact.image_file) }}" class="rounded-circle {% if item.unread_count > 0 %}border-a1{% endif %}" width="56" height="56" style="object-fit:cover;">
+                                {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ contact.username }}&background=4c1d95&color=c4b5fd" class="rounded-circle {% if item.unread_count > 0 %}border-a1{% endif %}" width="56" height="56">
+                                {% endif %}
+                            </a>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="mb-0 text-white profile-name-hover" style="font-weight: 600;">{{ contact.username }}</h6>
+                                    {% if last_msg %}
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ last_msg.timestamp.strftime('%d %b, %H:%M') }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge bg-dark-soft text-muted border border-secondary font-smaller">{{ contact.role | capitalize }}</span>
+                                    {% if contact.role == 'alumni' and contact.alumni_profile.current_company %}
+                                    <small class="text-muted small-text">&middot; {{ contact.alumni_profile.current_company }}</small>
+                                    {% elif contact.role == 'student' and contact.student_profile.department %}
+                                    <small class="text-muted small-text">&middot; {{ contact.student_profile.department }}</small>
+                                    {% endif %}
+                                </div>
+                                {% if last_msg %}
+                                <p class="mb-0 text-muted text-truncate preview-text {% if item.unread_count > 0 %}text-unread{% endif %}">
+                                    {% if last_msg.sender_id == current_user.id %}You: {% endif %}{{ last_msg.content }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            {% if item.unread_count > 0 %}
+                            <span class="badge rounded-pill bg-primary" style="font-size: 0.7rem;">{{ item.unread_count }} new</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-5 text-center text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                    <p class="mb-4">No conversations yet.</p>
+                    <a href="{{ url_for('search') }}" class="btn btn-primary-custom btn-sm px-4">Find someone in Directory</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<div class="fade-in-up">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-heading mb-1" style="font-size: 2rem;">Gamification Control</h1>
+            <p class="text-muted">Manage user XP, reset seasons, and view distribution.</p>
+        </div>
+        <form action="{{ url_for('admin_reset_all_points') }}" method="POST" onsubmit="return confirm('WARNING: This will reset EVERY users points to 0. Proceed?')">
+            <button type="submit" class="btn btn-danger px-4">
+                <i class="fas fa-undo me-2"></i> Reset All System Points
+            </button>
+        </form>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="dash-card">
+                <h5 class="mb-4">Top Point Holders</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th>XP Points</th>
+                                <th class="text-end">Ajdust</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td class="text-muted fw-bold">#{{ loop.index }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=4c1d95&color=c4b5fd" class="rounded-circle me-3" width="32" height="32">
+                                        <span class="text-white fw-bold">{{ user.username }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-warning fw-bold"><i class="fas fa-bolt me-1"></i>{{ user.points }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <form action="{{ url_for('admin_update_points', user_id=user.id) }}" method="POST" class="d-flex justify-content-end gap-2">
+                                        <input type="number" name="points" class="form-control form-control-sm bg-dark text-white border-secondary" style="width: 80px;" value="{{ user.points }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning"><i class="fas fa-sync-alt"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="dash-card mb-4">
+                <h5 class="mb-4">Point Categories</h5>
+                <div class="mb-4 d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(124,58,237,0.1); border-left: 4px solid var(--a1);">
+                    <div>
+                        <h6 class="mb-0 text-white">Engagement Rewards</h6>
+                        <small class="text-muted">Points earned from chat and jobs.</small>
+                    </div>
+                </div>
+                <div class="mb-0 d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success);">
+                    <div>
+                        <h6 class="mb-0 text-white">Contribution Bonus</h6>
+                        <small class="text-muted">Points awarded for mentorship.</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dash-card">
+                <h5 class="mb-4">System History</h5>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm text-white smaller">
+                        <thead>
+                            <tr class="text-muted">
+                                <th>Alumni</th>
+                                <th>Action</th>
+                                <th>Amount</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in transactions %}
+                            <tr>
+                                <td>{{ tx.user.username }}</td>
+                                <td class="text-capitalize">{{ tx.action.replace('_', ' ') }}</td>
+                                <td class="text-{{ 'success' if tx.amount > 0 else 'danger' }}">{{ tx.amount }}</td>
+                                <td class="text-muted" style="font-size: 0.7rem;">{{ tx.timestamp.strftime('%H:%M, %d %b') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

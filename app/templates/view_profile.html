@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center fade-in-up">
+    <div class="col-lg-7">
+        <div class="content-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-user-circle me-2"></i>{{ user.username }}'s Profile</h1>
+            <a href="{{ request.referrer or url_for('search') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+        </div>
+        <div class="dash-card">
+            {# Avatar header #}
+            <div class="text-center mb-4">
+                <div style="position:relative; display:inline-block; margin-bottom:16px;">
+                    {% if user.image_file and user.image_file != 'default.jpg' %}
+                        <img src="{{ url_for('static', filename='profile_pics/' + user.image_file) }}"
+                             class="rounded-circle mt-3 mb-3" width="128" height="128" alt="Profile"
+                             style="border:3px solid rgba(124,58,237,.4); box-shadow: 0 0 30px rgba(124,58,237,.2); object-fit: cover;">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&size=128&background=4c1d95&color=c4b5fd&bold=true"
+                             class="rounded-circle mt-3 mb-3" width="128" height="128" alt="Profile"
+                             style="border:3px solid rgba(124,58,237,.4); box-shadow: 0 0 30px rgba(124,58,237,.2); object-fit: cover;">
+                    {% endif %}
+                </div>
+                <h3 style="color:var(--t-hi); font-family:'Syne',sans-serif; letter-spacing:-.03em; margin-bottom:8px;">{{ user.username }}</h3>
+                <div class="d-flex justify-content-center gap-2 flex-wrap mb-3">
+                    <span class="badge bg-primary px-3 py-2 text-uppercase">{{ user.role }}</span>
+                    {% if user.role == 'alumni' %}
+                        <span class="badge {% if user.alumni_profile.is_approved == 'Approved' %}bg-success{% else %}bg-warning{% endif %} px-3 py-2 text-uppercase">
+                            {{ user.alumni_profile.is_approved }} Alumni
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    {% if current_user.id != user.id %}
+                    <a href="{{ url_for('chat', user_id=user.id) }}" class="btn btn-primary-custom px-4">
+                        <i class="fas fa-comment-alt me-2"></i> Message {{ user.username }}
+                    </a>
+                    {% endif %}
+                    {% if user.role == 'alumni' and user.alumni_profile.linkedin_url %}
+                    <a href="{{ user.alumni_profile.linkedin_url }}" target="_blank" class="btn btn-outline-primary px-4">
+                        <i class="fab fa-linkedin me-2"></i> {{ user.username }}'s LinkedIn
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="height:1px; background:var(--c-border); margin: 32px 0;"></div>
+
+            <div class="profile-details px-md-4">
+                {% if user.role == 'alumni' %}
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Degree</p>
+                            <h5 class="text-white">{{ user.alumni_profile.degree or 'N/A' }}</h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Graduation Year</p>
+                            <h5 class="text-white">{{ user.alumni_profile.graduation_year or 'N/A' }}</h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Current Company</p>
+                            <h5 class="text-white">
+                                {% if user.alumni_profile.current_company %}
+                                <i class="fas fa-building me-2 opacity-50"></i>{{ user.alumni_profile.current_company }}
+                                {% else %}N/A{% endif %}
+                            </h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Position</p>
+                            <h5 class="text-white">{{ user.alumni_profile.current_position or 'N/A' }}</h5>
+                        </div>
+                    </div>
+                {% elif user.role == 'student' %}
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Department</p>
+                            <h5 class="text-white">{{ user.student_profile.department or 'N/A' }}</h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Enrollment Year</p>
+                            <h5 class="text-white">{{ user.student_profile.enrollment_year or 'N/A' }}</h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Graduating Batch</p>
+                            <h5 class="text-white">{% if user.student_profile.enrollment_year %}{{ user.student_profile.enrollment_year + 4 }}{% else %}N/A{% endif %}</h5>
+                        </div>
+                    </div>
+                {% elif user.role == 'faculty' %}
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Department</p>
+                            <h5 class="text-white">{{ user.faculty_profile.department or 'N/A' }}</h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.1em;">Faculty Status</p>
+                            <h5 class="text-white">
+                                {% if user.faculty_profile.is_approved %}
+                                <span class="text-success"><i class="fas fa-check-circle me-1"></i>Verified</span>
+                                {% else %}
+                                <span class="text-warning"><i class="fas fa-clock me-1"></i>Pending</span>
+                                {% endif %}
+                            </h5>
+                        </div>
+                    </div>
+                {% elif user.role == 'admin' %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-shield-alt fa-3x text-primary mb-3 opacity-50"></i>
+                        <h5 class="text-white">System Administrator</h5>
+                        <p class="text-muted">Oversees platform operations and verifications.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-5 text-center px-md-4">
+               <div style="height:1px; background:var(--c-border); margin: 32px 0;"></div>
+               <p class="text-muted small mb-1"><i class="fas fa-clock me-1"></i> Member since {{ user.created_at.strftime('%B %Y') }}</p>
+               {% if user.role == 'alumni' %}
+               <p class="text-muted small"><i class="fas fa-bolt text-warning me-1"></i> {{ user.points }} XP earned on platform</p>
+               {% endif %}
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

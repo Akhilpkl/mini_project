@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center fade-in-up">
+    <div class="col-md-7">
+        <div class="content-header">
+            <h1>Post a New Job</h1>
+        </div>
+        <div class="dash-card">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    {% if form.title.errors %}{{ form.title(class="form-control is-invalid") }}<div class="invalid-feedback">{% for e in form.title.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                    {% else %}{{ form.title(class="form-control", placeholder="e.g. Software Engineer") }}{% endif %}
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        {{ form.company.label(class="form-label") }}
+                        {% if form.company.errors %}{{ form.company(class="form-control is-invalid") }}<div class="invalid-feedback">{% for e in form.company.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                        {% else %}{{ form.company(class="form-control", placeholder="Company name") }}{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.location.label(class="form-label") }}
+                        {% if form.location.errors %}{{ form.location(class="form-control is-invalid") }}<div class="invalid-feedback">{% for e in form.location.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                        {% else %}{{ form.location(class="form-control", placeholder="City, Country") }}{% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        {{ form.target_year.label(class="form-label") }}
+                        {% if form.target_year.errors %}{{ form.target_year(class="form-select is-invalid") }}<div class="invalid-feedback">{% for e in form.target_year.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                        {% else %}{{ form.target_year(class="form-select") }}{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.apply_link.label(class="form-label") }}
+                        {% if form.apply_link.errors %}{{ form.apply_link(class="form-control is-invalid") }}<div class="invalid-feedback">{% for e in form.apply_link.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                        {% else %}{{ form.apply_link(class="form-control", placeholder="https://apply.company.com") }}{% endif %}
+                        <div class="form-text">Application URL or email.</div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    {{ form.description.label(class="form-label") }}
+                    {% if form.description.errors %}{{ form.description(class="form-control is-invalid", rows=5) }}<div class="invalid-feedback">{% for e in form.description.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                    {% else %}{{ form.description(class="form-control", rows=5, placeholder="Describe the role, requirements, and what makes it exciting...") }}{% endif %}
+                </div>
+                <div class="d-flex gap-3">
+                    {{ form.submit(class="btn btn-primary-custom") }}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

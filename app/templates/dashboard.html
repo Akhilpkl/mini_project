@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="fade-in-up">
+
+    {# Page header #}
+    <div class="content-header">
+        <h1>
+            {% if current_user.role == 'admin' %}Admin Dashboard
+            {% elif current_user.role == 'faculty' %}Faculty Dashboard
+            {% elif current_user.role == 'alumni' %}Alumni Dashboard
+            {% elif current_user.role == 'student' %}Student Dashboard
+            {% else %}Dashboard{% endif %}
+        </h1>
+        {% if current_user.role == 'alumni' %}
+        <a href="{{ url_for('new_job') }}" class="btn btn-primary-custom btn-sm">
+            <i class="fas fa-plus"></i> Post Job
+        </a>
+        {% endif %}
+    </div>
+
+    {# ADMIN #}
+    {% if current_user.role == 'admin' %}
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="dash-card text-center h-100" style="padding:32px 20px;">
+                <div class="feature-icon mx-auto mb-3"><i class="fas fa-users"></i></div>
+                <div class="stat-number">{{ users_count }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dash-card text-center h-100" style="padding:32px 20px;">
+                <div class="feature-icon mx-auto mb-3" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.3);">
+                    <i class="fas fa-briefcase" style="color:#34D399;"></i>
+                </div>
+                <div class="stat-number" style="color:#34D399;">{{ jobs_count }}</div>
+                <div class="stat-label">Total Jobs</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dash-card text-center h-100" style="padding:32px 20px;">
+                <div class="feature-icon mx-auto mb-3" style="background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.3);">
+                    <i class="fas fa-clock" style="color:#FCD34D;"></i>
+                </div>
+                <div class="stat-number" style="color:#FCD34D;">{{ pending_alumni }}</div>
+                <div class="stat-label">Pending Reviews</div>
+            </div>
+        </div>
+    </div>
+
+    {# FACULTY #}
+    {% elif current_user.role == 'faculty' %}
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="dash-card h-100">
+                <h5 class="mb-4" style="color:var(--t-hi); font-weight:700;">
+                    <i class="fas fa-user-graduate me-2" style="color:var(--info);"></i>Pending Alumni
+                </h5>
+                {% if pending_alumni %}
+                <div class="list-group list-group-flush">
+                    {% for profile in pending_alumni %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <div class="fw-semibold" style="color:var(--t-hi);">{{ profile.user.username }}</div>
+                            <small style="color:var(--t-muted);">{{ profile.graduation_year }} &middot; {{ profile.degree }}</small>
+                        </div>
+                        <a href="{{ url_for('approve_alumni', profile_id=profile.id) }}" class="btn btn-primary-custom btn-sm">Approve</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color:var(--t-muted); text-align:center; padding:32px 0;">No pending approvals.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="dash-card h-100">
+                <h5 class="mb-4" style="color:var(--t-hi); font-weight:700;">
+                    <i class="fas fa-briefcase me-2" style="color:var(--warning);"></i>Pending Job Posts
+                </h5>
+                {% if pending_jobs %}
+                <div class="list-group list-group-flush">
+                    {% for job in pending_jobs %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <div class="fw-semibold" style="color:var(--t-hi);">{{ job.title }}</div>
+                            <small style="color:var(--t-muted);">{{ job.author.user.username }} &middot; {{ job.company }}</small>
+                        </div>
+                        <a href="{{ url_for('approve_job', job_id=job.id) }}" class="btn btn-primary-custom btn-sm">Verify</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color:var(--t-muted); text-align:center; padding:32px 0;">No pending job approvals.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# ALUMNI #}
+    {% elif current_user.role == 'alumni' %}
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(245,158,11,0.1), transparent); border: 1px solid rgba(245,158,11,0.2);">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="stat-icon" style="color:#FCD34D;"><i class="fas fa-bolt fs-4"></i></div>
+                    <div class="text-warning smaller fw-bold">XP POINTS</div>
+                </div>
+                <h3 class="stat-number mb-0" style="color:#FCD34D;">{{ current_user.points }}</h3>
+                <div class="stat-label">Total Contribution</div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="dash-card d-flex justify-content-between align-items-center h-100" style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(79,70,229,.08)); border-color:rgba(124,58,237,.25);">
+                <div>
+                    <div style="font-weight:700; color:var(--t-hi); margin-bottom:4px;">Profile Status</div>
+                    <span class="badge {% if profile.is_approved == 'Approved' %}bg-success{% else %}bg-warning{% endif %}">
+                        {{ profile.is_approved }}
+                    </span>
+                </div>
+                <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm">Edit Profile</a>
+            </div>
+        </div>
+    </div>
+    <div class="dash-card">
+        <h5 class="mb-4" style="color:var(--t-hi); font-weight:700;">My Posted Jobs</h5>
+        {% if jobs %}
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>Title</th><th>Company</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td style="font-weight:600;color:var(--t-hi);">{{ job.title }}</td>
+                        <td>{{ job.company }}</td>
+                        <td>{{ job.date_posted.strftime('%d %b %Y') }}</td>
+                        <td><span class="badge {% if job.is_approved %}bg-success{% else %}bg-warning{% endif %}">{% if job.is_approved %}Live{% else %}Pending{% endif %}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color:var(--t-muted);">You haven't posted any jobs yet.</p>
+        {% endif %}
+    </div>
+
+    {# STUDENT #}
+    {% elif current_user.role == 'student' %}
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="dash-card h-100">
+                <h5 class="mb-4" style="color:var(--t-hi); font-weight:700;">Recommended Opportunities</h5>
+                {% if jobs %}
+                <div class="d-flex flex-column gap-3">
+                    {% for job in jobs %}
+                    <div style="background:rgba(255,255,255,.03); border:1px solid var(--c-border); border-radius:var(--r); padding:18px 20px; transition:border-color .2s;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 style="font-weight:700; color:#a78bfa; margin:0;">{{ job.title }}</h6>
+                            <small style="color:var(--t-muted);">{{ job.date_posted.strftime('%d %b') }}</small>
+                        </div>
+                        <div style="color:var(--t-muted); font-size:.825rem; margin-bottom:10px;">{{ job.company }} &middot; {{ job.location }}</div>
+                        <p style="color:var(--t-muted); font-size:.85rem; margin-bottom:14px;">{{ job.description[:100] }}...</p>
+                        <a href="{{ job.apply_link if '://' in job.apply_link else 'https://' + job.apply_link }}"
+                           target="_blank" class="btn btn-primary-custom btn-sm">Apply Now</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('jobs') }}" class="btn btn-outline-primary btn-sm">View All Jobs</a>
+                </div>
+                {% else %}
+                <div style="text-align:center; padding:48px 0; color:var(--t-muted);">
+                    <i class="fas fa-briefcase fa-2x mb-3 d-block" style="opacity:.3;"></i>
+                    No jobs posted recently.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dash-card mb-4 text-center" style="background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(79,70,229,.05)); border: 1px solid rgba(124,58,237,.15);">
+                <div class="stat-label mb-2">My Profile</div>
+                <div class="feature-icon mx-auto mb-3" style="width: 60px; height: 60px; line-height: 55px;"><i class="fas fa-user-graduate"></i></div>
+                <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm w-100">Update Info</a>
+            </div>
+            <!-- Skills Gap section has been removed to simplify User Experience -->
+
+        </div>
+    </div>
+
+    {% else %}
+    <div class="dash-card">
+        <h2 style="color:var(--t-hi); margin-bottom:8px;">Welcome, {{ current_user.username }}!</h2>
+        <p style="color:var(--t-muted);">Select an option from the sidebar to get started.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

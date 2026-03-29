@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-split">
+
+    {# Left panel — branding + stats #}
+    <div class="auth-left d-none d-lg-flex">
+        <div class="auth-brand">
+            <i class="fas fa-graduation-cap"></i> AlumniNet
+        </div>
+        <div class="auth-left-quote">
+            <blockquote>
+                "Your alumni network is your<br><span>greatest asset.</span>"
+            </blockquote>
+            <p>Join 5,000+ SNGCE graduates already connected on the platform.</p>
+        </div>
+        <div class="auth-stats">
+            <div class="auth-stat-box"><div class="num">{{ total_alumni }}</div><div class="lbl">Alumni</div></div>
+            <div class="auth-stat-box"><div class="num">{{ jobs_per_month }}</div><div class="lbl">Jobs/mo</div></div>
+            <div class="auth-stat-box"><div class="num">{{ mentors }}</div><div class="lbl">Mentors</div></div>
+            <div class="auth-stat-box"><div class="num">{{ chapters }}</div><div class="lbl">Chapters</div></div>
+        </div>
+    </div>
+
+    {# Right panel — form #}
+    <div class="auth-right">
+        <div class="auth-form-wrap">
+            <div class="mb-5">
+                <a href="{{ url_for('index') }}" class="auth-brand d-lg-none mb-4 d-inline-flex">
+                    <i class="fas fa-graduation-cap"></i> AlumniNet
+                </a>
+                <h2 class="display-heading mb-1" style="font-size:1.8rem; color:var(--t-hi);">Welcome back</h2>
+                <p style="color:var(--t-muted); font-size:.9rem; margin:0;">Sign in to your account to continue</p>
+            </div>
+
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-4">
+                    {{ form.email.label(class="form-label") }}
+                    {% if form.email.errors %}
+                    {{ form.email(class="form-control is-invalid", placeholder="you@example.com") }}
+                    <div class="invalid-feedback">{% for e in form.email.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                    {% else %}
+                    {{ form.email(class="form-control", placeholder="you@example.com") }}
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.password.label(class="form-label") }}
+                    {% if form.password.errors %}
+                    {{ form.password(class="form-control is-invalid", placeholder="••••••••") }}
+                    <div class="invalid-feedback">{% for e in form.password.errors %}<span>{{ e }}</span>{% endfor %}</div>
+                    {% else %}
+                    {{ form.password(class="form-control", placeholder="••••••••") }}
+                    {% endif %}
+                </div>
+
+                <div class="mb-5 form-check">
+                    {{ form.remember(class="form-check-input") }}
+                    {{ form.remember.label(class="form-check-label") }}
+                </div>
+
+                <div class="d-grid mb-4">
+                    {{ form.submit(class="btn btn-primary-custom", style="justify-content:center;") }}
+                </div>
+
+                <p class="text-center" style="color:var(--t-muted); font-size:.875rem;">
+                    No account yet?
+                    <a href="{{ url_for('register') }}" class="auth-link ms-1">Create one free</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
