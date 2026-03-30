@@ -17,7 +17,10 @@ def create_app(config_class=Config):
 
     # Ensure upload directory exists
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
+        try:
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+        except OSError:
+            pass  # Ignore Read-Only File System error on Serverless platforms (e.g., Vercel)
 
     db.init_app(app)
     login_manager.init_app(app)

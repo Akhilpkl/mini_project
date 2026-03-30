@@ -21,10 +21,10 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
-    password = db.Column(db.String(60), nullable=False)
+    image_file = db.Column(db.String(20), nullable=False, default='default.jpg', server_default='default.jpg')
+    password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(10), nullable=False) # 'admin', 'faculty', 'alumni', 'student'
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, server_default=db.func.current_timestamp())
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -49,6 +49,7 @@ class AlumniProfile(db.Model):
     current_company = db.Column(db.String(100))
     current_position = db.Column(db.String(100))
     linkedin_url = db.Column(db.String(200))
+    resume_file = db.Column(db.String(200))
     is_approved = db.Column(db.String(20), default='Pending') # Pending, Approved, Rejected
     
     jobs_posted = db.relationship('Job', backref='author', lazy=True)

@@ -23,6 +23,12 @@
 
     {# Right panel — form #}
     <div class="auth-right">
+        {# Theme toggle strictly for auth pages #}
+        <button id="theme-toggle" class="auth-theme-toggle" aria-label="Toggle light/dark mode">
+            <i class="fas fa-sun toggle-sun"></i>
+            <i class="fas fa-moon toggle-moon"></i>
+        </button>
+
         <div class="auth-form-wrap">
             <div class="mb-5">
                 <a href="{{ url_for('index') }}" class="auth-brand d-lg-none mb-4 d-inline-flex">

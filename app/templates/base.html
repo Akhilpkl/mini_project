@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title if title else 'AlumniConnect — SNGCE' }}</title>
-    {# ── CRITICAL: set dark bg BEFORE any stylesheet loads to kill white flash ── #}
+    {# Apply saved theme and js-enabled class ASAP to avoid flash #}
+    <script>
+        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+        document.documentElement.classList.add('js-enabled');
+    </script>
     <style>html,body{background:#05060f!important;color:#cbd5e1;}</style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,8 +16,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-
-    {# ── PUBLIC NAVBAR (landing only) ── #}
+    {# ── Global Loading Overlay (Prevents Blink) ── #}
+    <div id="page-overlay"></div>
+    <div id="page-spinner"></div>
+    <div id="nav-bar"></div>    {# ── PUBLIC NAVBAR (landing only) ── #}
     {% if request.endpoint == 'index' and not current_user.is_authenticated %}
     <header class="main-header">
         <nav class="navbar px-5 py-3">
@@ -22,6 +28,10 @@
                 <span class="brand-text">AlumniNet</span>
             </a>
             <div class="d-flex align-items-center gap-3">
+                <button type="button" class="nav-theme-toggle" aria-label="Toggle light/dark mode">
+                    <i class="fas fa-sun toggle-sun"></i>
+                    <i class="fas fa-moon toggle-moon"></i>
+                </button>
                 {% if not current_user.is_authenticated %}
                 <a class="elite-nav-link" href="{{ url_for('login') }}">Login</a>
                 <a class="btn btn-primary-custom btn-sm" href="{{ url_for('register') }}">Join Now</a>
@@ -101,6 +111,13 @@
                         </a>
                     </li>
                 </ul>
+
+                {# Theme toggle #}
+                <button id="theme-toggle" aria-label="Toggle light/dark mode">
+                    <i class="fas fa-sun toggle-sun"></i>
+                    <i class="fas fa-moon toggle-moon"></i>
+                    <span class="nav-text" id="theme-toggle-label">Light Mode</span>
+                </button>
 
                 {# User dropdown #}
                 <div class="sidebar-user dropdown">

@@ -1,24 +1,24 @@
 // ─── PAGE TRANSITION SYSTEM ────────────────────────────────
-// Uses CSS classes .page-enter and .page-exit on #pageWrapper
+// Spinner-ring overlay: dark backdrop + thin gradient circle spinner
+// (matches the 2nd animation in the reference grid).
 
 (function () {
   'use strict';
 
-  // Create the top progress bar element
-  const bar = document.createElement('div');
-  bar.id = 'nav-bar';
-  bar.style.cssText = `
-    position: fixed;
-    top: 0; left: 0;
-    height: 2px;
-    width: 0%;
-    background: linear-gradient(90deg, #7C3AED, #4F46E5, #06B6D4);
-    z-index: 99999;
-    transition: width 0.3s ease, opacity 0.4s ease;
-    pointer-events: none;
-    box-shadow: 0 0 8px rgba(124,58,237,.6);
-  `;
-  document.documentElement.appendChild(bar);
+  // ── Grab elements from native DOM ────────────────────────
+  const overlay = document.getElementById('page-overlay');
+  const spinner = document.getElementById('page-spinner');
+  const bar = document.getElementById('nav-bar');
+
+  // If elements aren't present in HTML, bail out to avoid errors
+  if (!overlay || !spinner || !bar) return;
+
+  function showSpinner() {
+    spinner.style.opacity = '1';
+  }
+  function hideSpinner() {
+    spinner.style.opacity = '0';
+  }
 
   function startBar() {
     bar.style.opacity = '1';
@@ -26,31 +26,28 @@
   }
   function finishBar() {
     bar.style.width = '100%';
-    setTimeout(() => { bar.style.opacity = '0'; bar.style.width = '0%'; }, 300);
+    setTimeout(() => { bar.style.opacity = '0'; bar.style.width = '0%'; }, 350);
   }
 
-  // ─── Page wrapper fade-in on load ────────────────────────
-  document.documentElement.style.opacity = '0';
-  document.documentElement.style.transform = 'translateY(8px)';
-  document.documentElement.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
-
-  window.addEventListener('pageshow', function (e) {
-    // pageshow fires after bfcache restores as well
+  // ── Fade overlay + spinner out after page paints ─────────
+  window.addEventListener('pageshow', function () {
     requestAnimationFrame(() => {
-      document.documentElement.style.opacity = '1';
-      document.documentElement.style.transform = 'translateY(0)';
+      requestAnimationFrame(() => {
+        overlay.style.opacity = '0';
+        hideSpinner();
+        finishBar();
+      });
     });
-    finishBar();
   });
 
-  // ─── Intercept link clicks ───────────────────────────────
+  // ── Intercept link clicks ────────────────────────────────
   document.addEventListener('click', function (e) {
     const link = e.target.closest('a[href]');
     if (!link) return;
 
     const href = link.getAttribute('href');
 
-    // Skip: anchors, external links, new tab, download, javascript:, mailto:, tel:
+    // Skip: anchors, external, new-tab, download, special-protocols
     if (
       !href ||
       href.startsWith('#') ||
@@ -65,23 +62,25 @@
     e.preventDefault();
 
     startBar();
+    showSpinner();
 
-    // Fade + slide page out
-    document.documentElement.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
-    document.documentElement.style.opacity = '0';
-    document.documentElement.style.transform = 'translateY(-6px)';
+    // Fade overlay in, then navigate
+    overlay.style.transition = 'opacity 0.2s ease';
+    overlay.style.opacity = '1';
 
     setTimeout(() => {
       window.location.href = href;
-    }, 220);
+    }, 450);
   });
 
-  // ─── Form submit transitions ─────────────────────────────
+  // ── Form submit: show bar ────────────────────────────────
   document.addEventListener('submit', function (e) {
     const form = e.target;
-    // Only animate non-AJAX same-page forms
     if (form.method && form.method.toLowerCase() !== 'dialog') {
       startBar();
+      showSpinner();
+      overlay.style.transition = 'opacity 0.2s ease';
+      overlay.style.opacity = '1';
     }
   });
 
@@ -90,7 +89,7 @@
 // ─── Sidebar card hover animations (existing) ────────────
 document.addEventListener('DOMContentLoaded', function () {
   // Stagger-animate cards on initial page load
-  const cards = document.querySelectorAll('.dash-card, .glass-card, .stat-card, .feature-card');
+  const cards = document.querySelectorAll('.dash-card, .glass-card, .stat-card, .feature-card, .stagger-element');
   cards.forEach((card, i) => {
     card.style.opacity = '0';
     card.style.transform = 'translateY(18px)';
@@ -225,6 +224,86 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Handle window resize ─────────────────────────────────
     window.addEventListener('resize', () => {
       setPill(links[activeIdx], true);
+    });
+  });
+})();
+
+// ─── TELEGRAM-STYLE DARK / LIGHT MODE TOGGLE ───────────────
+// On click: captures button position → switches data-theme on <html>
+// → animates a clip-path circle that grows from the button outward,
+// revealing the new theme underneath — identical to Telegram's animation.
+(function () {
+  'use strict';
+
+  // Inject the clip-path animation stylesheet for View Transitions
+  const vt = document.createElement('style');
+  vt.textContent = `
+    /* When theme transition runs via View Transitions API */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+    /* New theme expands as a circle from toggle button */
+    ::view-transition-new(root) {
+      z-index: 9999;
+      clip-path: var(--theme-ripple-clip, circle(0px at 50% 50%));
+      animation: _theme_ripple 0.7s ease-in-out forwards;
+      will-change: clip-path;
+    }
+    ::view-transition-old(root) {
+      z-index: 9998;
+      animation: none;
+    }
+    @keyframes _theme_ripple {
+      from { clip-path: var(--theme-ripple-from, circle(0px at 50% 50%)); }
+      to   { clip-path: var(--theme-ripple-to,   circle(200vmax at 50% 50%)); }
+    }
+  `;
+  document.head.appendChild(vt);
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    // Update label text if it exists (sidebar toggle)
+    const label = document.getElementById('theme-toggle-label');
+    if (label) label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+  }
+
+  function toggleTheme(btn) {
+    const current  = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next     = current === 'dark' ? 'light' : 'dark';
+
+    // Get the center of the toggle button for the ripple origin
+    const rect = btn.getBoundingClientRect();
+    const x    = Math.round(rect.left + rect.width  / 2);
+    const y    = Math.round(rect.top  + rect.height / 2);
+    const from = `circle(0px at ${x}px ${y}px)`;
+    const to   = `circle(200vmax at ${x}px ${y}px)`;
+
+    // Set CSS vars used by the @keyframes above
+    document.documentElement.style.setProperty('--theme-ripple-from', from);
+    document.documentElement.style.setProperty('--theme-ripple-to',   to);
+
+    // Native View Transitions API (Chrome 111+, Firefox 126+)
+    if (document.startViewTransition) {
+      document.startViewTransition(() => { applyTheme(next); });
+    } else {
+      // Fallback: just switch instantly
+      applyTheme(next);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Sync label text after DOM ready
+    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const label = document.getElementById('theme-toggle-label');
+    if (label) label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+
+    // Support #theme-toggle, .auth-theme-toggle, and .nav-theme-toggle buttons
+    const btns = document.querySelectorAll('#theme-toggle, .auth-theme-toggle, .nav-theme-toggle');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => toggleTheme(btn));
     });
   });
 })();

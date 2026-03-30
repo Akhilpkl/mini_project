@@ -16,25 +16,22 @@
   function rollDigits(displayEl, oldVal, newVal) {
     const going_up = newVal > oldVal;
     const diff = Math.abs(newVal - oldVal);
-
-    // Clamp large jumps for performance
     const steps = Math.min(diff, 8);
 
-    displayEl.style.transition = 'none';
-    displayEl.style.transform = 'translateY(0)';
-    displayEl.textContent = String(oldVal);
+    // ── Lock the container height BEFORE touching content ──
+    // This is what prevents the wrapper bar from shrinking/growing.
+    const lockedH = displayEl.offsetHeight || 44;
+    displayEl.style.height  = lockedH + 'px';
+    displayEl.style.overflow = 'hidden';
+    displayEl.style.position = 'relative';
 
-    // Force reflow
-    void displayEl.offsetHeight;
+    displayEl.textContent = '';
 
-    // Build a vertical strip of numbers
+    // Build vertical strip
     const strip = document.createElement('div');
     strip.style.cssText = `
       display: flex;
       flex-direction: column;
-      line-height: inherit;
-      position: absolute;
-      inset: auto;
       will-change: transform;
     `;
 
@@ -49,29 +46,30 @@
     nums.forEach((n) => {
       const span = document.createElement('span');
       span.textContent = String(n);
-      span.style.display = 'block';
+      span.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: ${lockedH}px;
+        flex-shrink: 0;
+      `;
       strip.appendChild(span);
     });
 
-    displayEl.textContent = '';
-    displayEl.style.position = 'relative';
-    displayEl.style.overflow = 'hidden';
     displayEl.appendChild(strip);
 
-    // Slide the strip
-    const lineH = displayEl.offsetHeight || 36;
-    strip.style.transform = 'translateY(0)';
-
+    // Slide the strip (each item is exactly lockedH px tall)
     requestAnimationFrame(() => {
       strip.style.transition = 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)';
-      strip.style.transform = `translateY(-${(steps) * lineH}px)`;
+      strip.style.transform  = `translateY(-${steps * lockedH}px)`;
     });
 
     setTimeout(() => {
       displayEl.textContent = String(newVal);
+      displayEl.style.height   = '';
       displayEl.style.overflow = '';
       displayEl.style.position = '';
-    }, 400);
+    }, 420);
   }
 
   /**

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="fade-in-up">
-    <div class="content-header">
+    <div class="content-header stagger-element">
         <h1>Career Opportunities</h1>
         {% if current_user.role == 'alumni' %}
         <a href="{{ url_for('new_job') }}" class="btn btn-primary-custom btn-sm">

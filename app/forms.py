@@ -44,6 +44,7 @@ class AlumniProfileForm(FlaskForm):
     current_company = StringField('Current Company')
     current_position = StringField('Current Position')
     linkedin_url = StringField('LinkedIn URL')
+    resume = FileField('Upload Resume (PDF)', validators=[FileAllowed(['pdf'])])
     submit = SubmitField('Update Profile')
 
 class StudentProfileForm(FlaskForm):

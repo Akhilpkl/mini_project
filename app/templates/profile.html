@@ -56,6 +56,22 @@
 
                 {% if current_user.role == 'alumni' %}
                 <div class="mb-2" style="color:#a78bfa; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; margin-bottom:16px;">Alumni Details</div>
+                
+                <div class="mb-4 text-start">
+                    {{ form.resume.label(class="form-label") }}
+                    {{ form.resume(class="form-control mb-1", accept=".pdf", style="background:#fff!important; color:#000!important;") }}
+                    {% if form.resume.errors %}
+                        {% for error in form.resume.errors %}<span class="text-danger small">{{ error }}</span><br>{% endfor %}
+                    {% endif %}
+                    {% if current_user.alumni_profile.resume_file %}
+                        <div class="mt-2">
+                            <a href="{{ url_for('static', filename='resumes/' + current_user.alumni_profile.resume_file) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-file-pdf me-1"></i> View Current Resume
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
                 <div class="row mb-3">
                     <div class="col-md-6 mb-3 mb-md-0">
                         {{ form.graduation_year.label(class="form-label") }}

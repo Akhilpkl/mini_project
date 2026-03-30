@@ -25,6 +25,15 @@ def save_event_photo(form_photo):
     form_photo.save(photo_path)
     return photo_fn
 
+def save_resume(form_resume):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_resume.filename)
+    resume_fn = random_hex + f_ext
+    resume_path = os.path.join(current_app.root_path, 'static/resumes', resume_fn)
+    os.makedirs(os.path.dirname(resume_path), exist_ok=True)
+    form_resume.save(resume_path)
+    return resume_fn
+
 def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.utcnow()
@@ -456,6 +465,9 @@ def profile():
         if form.validate_on_submit():
             if form.picture.data:
                 current_user.image_file = save_picture(form.picture.data)
+            if form.resume.data:
+                current_user.alumni_profile.resume_file = save_resume(form.resume.data)
+                
             current_user.alumni_profile.degree = form.degree.data
             current_user.alumni_profile.graduation_year = form.graduation_year.data
             current_user.alumni_profile.current_company = form.current_company.data

@@ -55,7 +55,10 @@
 /* ─── RESET & BASE ───────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  background: #05060f; /* kill any white flash before body styles load */
+}
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -235,8 +238,10 @@ h1,h2,h3,h4,h5,h6 { color: var(--t-hi); font-weight: 700; letter-spacing: -.025e
 #menu .nav-link i { font-size: .95rem; width: 18px; text-align: center; flex-shrink: 0; }
 #menu .nav-link:hover { background: var(--c-surface-2); color: var(--t-hi); }
 #menu .nav-link.active {
-  background: linear-gradient(135deg, rgba(124,58,237,.2), rgba(79,70,229,.15));
-  border: 1px solid rgba(124,58,237,.3);
+  /* No border here — the JS pill provides the highlight border.
+     Only keep color/weight so text stays styled whether pill is
+     present or not (e.g. no-JS fallback). */
+  background: transparent;
   color: #a78bfa;
   font-weight: 600;
 }
@@ -317,6 +322,16 @@ h1,h2,h3,h4,h5,h6 { color: var(--t-hi); font-weight: 700; letter-spacing: -.025e
   transition: transform var(--dur) var(--ease), border-color var(--dur), box-shadow var(--dur);
   position: relative;
   overflow: hidden;
+}
+
+/* Prevent blink/FOUC on JS stagger animation */
+.js-enabled .glass-card,
+.js-enabled .dash-card,
+.js-enabled .stat-card,
+.js-enabled .feature-card,
+.js-enabled .stagger-element {
+  opacity: 0;
+  transform: translateY(18px);
 }
 
 /* Shimmer line on top of card */
@@ -606,28 +621,53 @@ h1,h2,h3,h4,h5,h6 { color: var(--t-hi); font-weight: 700; letter-spacing: -.025e
 /* ─── HERO (PUBLIC LANDING) ──────────────────────────────── */
 .hero-section {
   position: relative;
-  min-height: 85vh;
+  min-height: 70vh;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   overflow: hidden;
-  padding: 80px 0;
+  padding: 140px 0 80px; /* Increased top padding to account for fixed navbar */
   background-attachment: scroll; /* Scroll is better for image proportion than fixed */
+  background: radial-gradient(circle at center, rgba(5,6,15,0.95) 0%, rgba(5,6,15,0.3) 100%), url('../images/sngce_campus.png') center center / cover no-repeat scroll;
 }
 
-/* Hero grid pattern background */
-.hero-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 40%, transparent 100%);
-  pointer-events: none;
+/* ─── PUBLIC NAVBAR (GLASSMORPHISM) ─────────────────────── */
+.main-header {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1030;
+  background: rgba(5,6,15, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--c-border);
+  transition: all 0.3s ease;
 }
+
+.nav-theme-toggle {
+  background: none;
+  border: 1px solid var(--c-border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--t-hi);
+  transition: all var(--dur) ease;
+}
+.nav-theme-toggle:hover {
+  background: var(--c-surface-2);
+  border-color: var(--c-border-hi);
+}
+.nav-theme-toggle .toggle-sun { display: none; }
+.nav-theme-toggle .toggle-moon { display: inline; }
+[data-theme="light"] .nav-theme-toggle .toggle-sun { display: inline; }
+[data-theme="light"] .nav-theme-toggle .toggle-moon { display: none; }
+[data-theme="dark"] .nav-theme-toggle .toggle-sun { display: inline; }
+[data-theme="dark"] .nav-theme-toggle .toggle-moon { display: none; }
 
 .hero-eyebrow {
   display: inline-flex;
@@ -706,10 +746,12 @@ h1,h2,h3,h4,h5,h6 { color: var(--t-hi); font-weight: 700; letter-spacing: -.025e
   background: linear-gradient(135deg, #0e0922 0%, #130d2e 50%, #0a1628 100%);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 60px;
   padding: 48px;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .auth-left::before {
   content: '';
@@ -742,6 +784,41 @@ h1,h2,h3,h4,h5,h6 { color: var(--t-hi); font-weight: 700; letter-spacing: -.025e
   position: relative;
   z-index: 1;
 }
+
+.auth-theme-toggle {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  background: var(--c-surface) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid var(--c-border) !important;
+  border-radius: 50% !important;
+  width: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: var(--t-muted);
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 999;
+}
+.auth-theme-toggle:hover {
+  color: var(--t-hi);
+  border-color: var(--c-border-hi);
+  background: rgba(255,255,255,0.05);
+}
+[data-theme="light"] .auth-theme-toggle:hover {
+  background: rgba(0,0,0,0.05);
+}
+.auth-theme-toggle i {
+  font-size: 1.1rem;
+}
+.auth-theme-toggle .toggle-moon { display: none; }
+[data-theme="light"] .auth-theme-toggle .toggle-sun { display: none; }
+[data-theme="light"] .auth-theme-toggle .toggle-moon { display: block; }
 
 .auth-form-wrap { width: 100%; max-width: 360px; }
 .auth-card { background: transparent; border: none; border-radius: 0; padding: 0; box-shadow: none; }
@@ -816,6 +893,20 @@ h1,h2,h3,h4,h5,h6 { color: var(--t-hi); font-weight: 700; letter-spacing: -.025e
   text-transform: uppercase;
   letter-spacing: .08em;
   margin-top: 4px;
+}
+
+/* Ensure auth-left fits without scrolling on smaller vertical screens */
+@media (max-height: 850px) {
+  .auth-left { padding: 32px; }
+  .auth-stats { gap: 16px; }
+  .auth-stat-box { padding: 12px 16px; }
+  .auth-left-quote blockquote { font-size: 1.3rem; margin-bottom: 12px; }
+}
+@media (max-height: 650px) {
+  .auth-left { padding: 24px; }
+  .auth-brand { font-size: 1.2rem; }
+  .auth-stats { gap: 12px; }
+  .auth-stat-box .num { font-size: 1.2rem; }
 }
 
 /* ─── PAGE HEADER (internal) ─────────────────────────────── */
@@ -988,7 +1079,7 @@ a .dash-card, a .glass-card, a .stat-card, a .feature-card {
   width: calc(100% + 48px);
   margin: -32px -24px 32px;
   height: 380px;
-  background-image: linear-gradient(0deg, var(--c-bg) 0%, rgba(5,6,15,0.4) 50%, rgba(5,6,15,0.2) 100%), 
+  background-image: linear-gradient(0deg, var(--c-bg) 0%, rgba(5,6,15,0.7) 50%, rgba(5,6,15,0.6) 100%), 
                     url('../images/sngce_campus.png');
   background-size: cover;
   background-position: center;
@@ -996,7 +1087,7 @@ a .dash-card, a .glass-card, a .stat-card, a .feature-card {
   align-items: center;
   justify-content: center;
   text-align: center;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: none;
 }
 
 .hero-banner-content {
@@ -1358,4 +1449,263 @@ a .dash-card, a .glass-card, a .stat-card, a .feature-card {
   font-size: 0.85rem;
   font-weight: 600;
   color: #a78bfa;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE  —  [data-theme="light"] overrides
+   ═══════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  /* Surfaces */
+  --c-bg:        #f5f4f8;
+  --c-surface:   #ffffff;
+  --c-surface-2: #f0eef6;
+  --c-surface-3: #e8e5f2;
+  --c-border:    rgba(100, 80, 180, 0.12);
+  --c-border-hi: rgba(100, 80, 180, 0.22);
+
+  /* Text */
+  --t-hi:    #1a1333;
+  --t-base:  #3d3560;
+  --t-muted: #7b72a8;
+  --t-dim:   #b0aacc;
+  --grad-text: linear-gradient(135deg, #4c1d95 0%, #3730a3 50%, #0284c7 100%);
+
+  /* Shadows */
+  --sh-card: 0 0 0 1px rgba(100,80,180,.08), 0 8px 32px rgba(100,80,180,.12);
+  --sh-glow: 0 0 40px rgba(124,58,237,.18);
+  --sh-btn:  0 4px 20px rgba(124,58,237,.35);
+}
+
+[data-theme="light"] html,
+[data-theme="light"] body {
+  background: var(--c-bg) !important;
+  color: var(--t-base) !important;
+}
+
+[data-theme="light"] .text-white {
+  color: var(--t-hi) !important;
+}
+
+/* Sidebar */
+[data-theme="light"] #sidebarMenu {
+  background: rgba(255,255,255,.92);
+  border-right-color: var(--c-border);
+}
+
+[data-theme="light"] #menu .nav-link { color: var(--t-muted); font-weight: 500; }
+[data-theme="light"] #menu .nav-link:hover { background: var(--c-surface-2); color: var(--t-hi); }
+[data-theme="light"] #menu .nav-link.active {
+  background: transparent;
+  color: #4338ca; /* High contrast indigo for light mode */
+  font-weight: 700;
+}
+[data-theme="light"] #menu .nav-link.active i { color: #4338ca; }
+
+/* Body ambient orbs — lighter opacity in light mode */
+[data-theme="light"] body::before { opacity: .07; }
+[data-theme="light"] body::after  { opacity: .06; }
+
+/* Cards */
+[data-theme="light"] .glass-card,
+[data-theme="light"] .dash-card,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .feature-card {
+  background: rgba(255,255,255,.85);
+}
+
+/* Nav pill */
+[data-theme="light"] #nav-pill {
+  background: linear-gradient(135deg, rgba(124,58,237,.15), rgba(79,70,229,.1));
+}
+
+/* Form controls */
+[data-theme="light"] .form-control,
+[data-theme="light"] .form-select {
+  background: rgba(0,0,0,.04) !important;
+  border-color: var(--c-border-hi) !important;
+  color: var(--t-hi) !important;
+}
+[data-theme="light"] .form-control::placeholder { color: var(--t-dim) !important; }
+
+/* Number input */
+[data-theme="light"] .ni-wrapper {
+  background: rgba(0,0,0,.03);
+  border-color: var(--c-border-hi);
+  color: var(--t-hi);
+}
+
+/* Badges */
+[data-theme="light"] .bg-surface { background: var(--c-surface) !important; }
+
+/* Dropdown */
+[data-theme="light"] .dropdown-menu {
+  background: var(--c-surface) !important;
+  border-color: var(--c-border-hi) !important;
+}
+[data-theme="light"] .dropdown-item { color: var(--t-base) !important; }
+[data-theme="light"] .dropdown-item:hover { background: var(--c-surface-2) !important; }
+[data-theme="light"] .dropdown-divider { border-color: var(--c-border) !important; }
+
+/* Table */
+[data-theme="light"] .table { color: var(--t-base); }
+[data-theme="light"] .table th { color: var(--t-muted); border-bottom-color: var(--c-border) !important; background: rgba(0,0,0,.02); }
+[data-theme="light"] .table td { border-bottom-color: var(--c-border); color: var(--t-base); }
+
+/* Alerts */
+[data-theme="light"] .alert-success { background: rgba(16,185,129,.08); }
+[data-theme="light"] .alert-warning { background: rgba(245,158,11,.08); }
+[data-theme="light"] .alert-danger  { background: rgba(239,68,68,.08); }
+[data-theme="light"] .alert-info    { background: rgba(6,182,212,.08); }
+
+/* Auth pages */
+[data-theme="light"] .auth-wrapper,
+[data-theme="light"] .auth-right { background: var(--c-surface); }
+[data-theme="light"] .auth-left  { background: linear-gradient(135deg, #f0eaf8 0%, #e8e0f5 50%, #dde8f5 100%); }
+
+/* Page overlay during navigation (keep dark) */
+[data-theme="light"] #page-overlay { background: #f5f4f8; }
+
+/* Hero section */
+[data-theme="light"] .hero-section { 
+  background: radial-gradient(circle at center, rgba(245,244,248,0.95) 0%, rgba(245,244,248,0.3) 100%), url('../images/sngce_campus.png') center center / cover no-repeat scroll;
+}
+[data-theme="light"] .hero-section::before {
+  background-image:
+    linear-gradient(rgba(100,80,180,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100,80,180,.04) 1px, transparent 1px);
+}
+[data-theme="light"] .hero-banner {
+  background-image: linear-gradient(0deg, var(--c-bg) 0%, rgba(245,244,248,0.75) 50%, rgba(245,244,248,0.65) 100%), 
+                    url('../images/sngce_campus.png');
+}
+
+/* Public navbar */
+[data-theme="light"] .main-header {
+  background: rgba(245,244,248,.6);
+  border-bottom-color: var(--c-border);
+}
+
+/* Hero eyebrow visibility */
+[data-theme="light"] .hero-eyebrow {
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.1), rgba(79, 70, 229, 0.05));
+  border-color: rgba(67, 56, 202, 0.2);
+  color: #4338ca;
+}
+[data-theme="light"] .hero-eyebrow::before {
+  background: #4338ca;
+  box-shadow: 0 0 8px #4338ca;
+}
+
+/* Scrollbar */
+[data-theme="light"] ::-webkit-scrollbar-track { background: var(--c-surface-2); }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #c4b5fd; }
+
+/* Sidebar user area */
+[data-theme="light"] .sidebar-user { border-top-color: var(--c-border); }
+
+
+/* ── THEME TOGGLE BUTTON ──────────────────────────────────── */
+#theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  margin-top: 6px;
+  background: none;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--t-muted);
+  font-size: .875rem;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  transition: background var(--dur), color var(--dur), border-color var(--dur);
+  white-space: nowrap;
+}
+#theme-toggle:hover { background: var(--c-surface-2); color: var(--t-hi); border-color: var(--c-border-hi); }
+
+/* Sun/moon icons inside toggle */
+#theme-toggle .toggle-sun,
+#theme-toggle .toggle-moon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+}
+/* Light: show moon to switch to dark. Dark: show sun to switch to light */
+[data-theme="light"] #theme-toggle .toggle-sun  { display: none; }
+[data-theme="light"] #theme-toggle .toggle-moon { display: inline; }
+[data-theme="dark"]  #theme-toggle .toggle-sun  { display: inline; }
+[data-theme="dark"]  #theme-toggle .toggle-moon { display: none; }
+
+/* ── PAGE TRANSITION OVERLAY ──────────────────────────────── */
+#page-overlay {
+  position: fixed;
+  inset: 0;
+  background: #05060f;
+  z-index: 99998;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#page-spinner {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: fit-content;
+  font-size: 40px;
+  font-family: monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(167, 139, 250, 0.4);
+  background: conic-gradient(#a78bfa 0 0) -1ch/1ch 100% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: _pt_fill 0.45s steps(6, jump-none) infinite;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+[data-theme="light"] #page-spinner {
+  -webkit-text-stroke: 1px rgba(67, 56, 202, 0.4);
+  background: conic-gradient(#4338ca 0 0) -1ch/1ch 100% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+#page-spinner:before {
+  content: "SNGCE";
+}
+
+@keyframes _pt_fill {
+  to { background-position: 100% }
+}
+
+#nav-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, #7C3AED, #4F46E5, #06B6D4);
+  z-index: 99999;
+  transition: width 0.35s ease, opacity 0.4s ease;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(124,58,237,.6);
+  opacity: 0;
+}
+
+/* ── TELEGRAM-STYLE RIPPLE CANVAS ─────────────────────────── */
+#theme-ripple {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  pointer-events: none;
+  /* The ripple is driven via clip-path in JS */
 }

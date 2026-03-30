@@ -51,7 +51,7 @@
         .admin-nav-link.active {
             background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(124,58,237,0.1));
             color: #a78bfa;
-            border: 1px solid rgba(124,58,237,0.3);
+            /* No border — avoids double-rectangle with any JS pill */
         }
         .admin-nav-link i {
             width: 20px;
@@ -138,5 +138,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

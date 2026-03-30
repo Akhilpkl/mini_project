@@ -161,6 +161,7 @@ CREATE TABLE alumni_profile (
     current_company VARCHAR(100),
     current_position VARCHAR(100),
     linkedin_url VARCHAR(200),
+    resume_file VARCHAR(200),
     is_approved VARCHAR(20) DEFAULT 'Pending',
     FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
@@ -230,6 +231,23 @@ VALUES ('Administrator', 'admin@alumninet.com', '$2b$12$07/ZpQpP6p6vQz6F7f7h6e07
 
 ---
 
+## 🛠️ Schema Migration Notes
+
+If you set up the database from an **older version** of AlumniNet (before resume upload support was added), the `alumni_profile` table may be missing the `resume_file` column. Run the following to fix it:
+
+```sql
+ALTER TABLE alumni_profile ADD COLUMN resume_file VARCHAR(200);
+```
+
+Or use the included helper script:
+```bash
+python add_resume_column.py
+```
+
+> [!TIP]
+> To avoid schema drift in the future, consider adopting **Flask-Migrate** (`flask db migrate / flask db upgrade`) which auto-generates migration scripts whenever your models change.
+
+---
 
 ## 👨‍💻 Contributing
 Feel free to fork this project and submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
